@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
@@ -16,6 +17,7 @@ def create_auth_user_session_model(base, UserModel):
 
         __tablename__ = "auth_user_sessions"
 
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
@@ -23,6 +25,9 @@ def create_auth_user_session_model(base, UserModel):
         )
         expires_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), nullable=False
+        )
+        uuid: Mapped[str] = mapped_column(
+            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
         )
 
         ## Optional fields
@@ -45,4 +50,4 @@ def create_auth_user_session_model(base, UserModel):
         def __str__(self) -> str:
             return f"AuthUserSessionModel(user_id={self.user_id},  expires_at={self.expires_at})"
 
-    return AuthUserSessionModel()
+    return AuthUserSessionModel

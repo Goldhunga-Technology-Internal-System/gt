@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
@@ -16,6 +17,7 @@ def create_auth_user_tokens_model(base, UserModel):
 
         __tablename__ = "auth_user_tokens"
 
+        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
@@ -25,6 +27,9 @@ def create_auth_user_tokens_model(base, UserModel):
         token_hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
         expires_at: Mapped[datetime] = mapped_column(
             DateTime(timezone=True), nullable=False, index=True
+        )
+        uuid: Mapped[str] = mapped_column(
+            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
         )
 
         ## Optional fields
@@ -38,4 +43,4 @@ def create_auth_user_tokens_model(base, UserModel):
         def __str__(self) -> str:
             return f"AuthUserTokensModel(user_id={self.user_id}, type={self.type}, expires_at={self.expires_at}, used_at={self.used_at})"
 
-    return AuthUserTokensModel()
+    return AuthUserTokensModel

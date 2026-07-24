@@ -29,14 +29,14 @@ def create_auth_user_account_model(base, UserModel):
         __tablename__ = "auth_user_accounts"
 
         id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-        uuid: Mapped[str] = mapped_column(
-            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
-        )
         type: Mapped[str] = mapped_column(String(255), nullable=False)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
             index=True,
+        )
+        uuid: Mapped[str] = mapped_column(
+            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
         )
 
         ## Optional fields
@@ -56,4 +56,4 @@ def create_auth_user_account_model(base, UserModel):
         def __str__(self) -> str:
             return f"AuthUserAccoutModel(id={self.id}, uuid={self.uuid}, type={self.type}, user_id={self.user_id})"
 
-    return AuthUserAccoutModel()
+    return AuthUserAccoutModel

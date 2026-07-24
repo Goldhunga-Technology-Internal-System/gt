@@ -1,5 +1,3 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from .models import (
     AuthUserModel,
     AuthUserOnboardingModel,
@@ -20,7 +18,7 @@ class Auth:
         base,
         user_model: type[AuthUserModel],
         user_onboarding_model: type[AuthUserOnboardingModel],
-        database_async_session: AsyncSession,
+        # database_async_session: AsyncSession,
     ):
         """
         Initialize the Auth class.
@@ -42,7 +40,7 @@ class Auth:
         self.user_model = user_model
         self.user_onboarding_model = user_onboarding_model
 
-        self.database_async_session = database_async_session
+        # self.database_async_session = database_async_session
         self.user_account_model = create_auth_user_account_model(base, user_model)
         self.user_session_model = create_auth_user_session_model(base, user_model)
         self.user_tokens_model = create_auth_user_tokens_model(base, user_model)
