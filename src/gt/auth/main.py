@@ -1,9 +1,8 @@
+from fastapi import FastAPI
+
 from .models import (
     AuthUserModel,
     AuthUserOnboardingModel,
-    create_auth_user_account_model,
-    create_auth_user_session_model,
-    create_auth_user_tokens_model,
 )
 
 
@@ -41,6 +40,11 @@ class Auth:
         self.user_onboarding_model = user_onboarding_model
 
         # self.database_async_session = database_async_session
-        self.user_account_model = create_auth_user_account_model(base, user_model)
-        self.user_session_model = create_auth_user_session_model(base, user_model)
-        self.user_tokens_model = create_auth_user_tokens_model(base, user_model)
+
+    def init_app(self, app: FastAPI):
+        """
+        Initialize the FastAPI application with the Auth class.
+        """
+        from .routers.router_registry import register_auth_routers
+
+        register_auth_routers(app)

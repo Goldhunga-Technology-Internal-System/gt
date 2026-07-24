@@ -9,6 +9,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "fastapi>=0.139.2",
     "pre-commit>=4.6.1",
     "ruff>=0.16.0",
     "sqlalchemy>=2.0.51",
