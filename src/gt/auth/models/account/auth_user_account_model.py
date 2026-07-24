@@ -1,9 +1,8 @@
-from datetime import datetime
-from sqlalchemy import ForeignKey, String, DateTime
-from sqlalchemy.orm import declarative_base
 import uuid
+from datetime import datetime
 
-from sqlalchemy.orm import Mapped, mapped_column, declarative_base
+from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
 Base = declarative_base()
 
