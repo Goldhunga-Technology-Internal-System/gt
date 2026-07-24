@@ -1,11 +1,9 @@
 import uuid
 
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-class AuthUserModel(Base):
+class AuthUserModel:
     """
     AuthUserModel is a model that represents a user in the authentication system.
 

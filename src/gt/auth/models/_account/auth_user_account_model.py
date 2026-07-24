@@ -2,12 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-def create_auth_user_account_model(UserModel):
+def create_auth_user_account_model(base, UserModel):
     """
     Factory function to create the AuthUserAccountModel class.
 
@@ -18,7 +16,7 @@ def create_auth_user_account_model(UserModel):
         AuthUserAccountModel: The AuthUserAccountModel class.
     """
 
-    class AuthUserAccoutModel(Base):
+    class AuthUserAccoutModel(base):
         """
         AuthUserAccountModel is a model that represents a user account in the authentication system.
 

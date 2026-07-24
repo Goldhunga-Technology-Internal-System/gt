@@ -1,11 +1,9 @@
 import uuid
 
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-class AuthUserOnboardingModel(Base):
+class AuthUserOnboardingModel:
     """
     AuthUserOnboardingModel is a model that represents the onboarding process of a user in the authentication system.
 

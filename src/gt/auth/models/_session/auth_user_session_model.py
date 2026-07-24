@@ -1,22 +1,20 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-def create_auth_user_session_model(UserModel):
+def create_auth_user_session_model(base, UserModel):
     """
     Factory function to create the AuthUserSessionModel class.
     """
 
-    class AuthUserSessionModel(Base):
+    class AuthUserSessionModel(base):
         """
         AuthUserSessionModel is a model that represents a user session in the authentication system.
         """
 
-        __tablename__ = "sys_auth_user_sessions"
+        __tablename__ = "auth_user_sessions"
 
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),

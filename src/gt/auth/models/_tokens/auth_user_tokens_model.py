@@ -1,22 +1,20 @@
 from datetime import datetime
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, declarative_base, mapped_column
-
-Base = declarative_base()
+from sqlalchemy.orm import Mapped, mapped_column
 
 
-def create_auth_user_tokens_model(UserModel):
+def create_auth_user_tokens_model(base, UserModel):
     """
     Factory function to create the AuthUserTokensModel class.
     """
 
-    class AuthUserTokensModel(Base):
+    class AuthUserTokensModel(base):
         """
         AuthUserTokensModel is a model that represents a user token in the authentication system.
         """
 
-        __tablename__ = "sys_auth_user_tokens"
+        __tablename__ = "auth_user_tokens"
 
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
