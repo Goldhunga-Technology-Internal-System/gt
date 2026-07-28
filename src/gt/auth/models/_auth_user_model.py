@@ -34,5 +34,5 @@ class AuthUserModel:
     )
     full_name: Mapped[str] = mapped_column(String(255), nullable=False, init=False)
     email_verified_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True, default=None
+        DateTime(timezone=True), nullable=True, default=None, init=False
     )
