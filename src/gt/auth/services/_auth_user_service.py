@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from gt.auth.events import UserCreatedEvent, event_bus
 from gt.exceptions import ConflictException, DomainException
 
-from ..models.auth_user_model import AuthUserModel
-from ..repositories.auth_user_repository import AuthUserRepository
+from ..models import AuthUserModel
+from ..repositories import AuthUserRepository
 
 
 class AuthUserService:

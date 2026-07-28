@@ -2,10 +2,9 @@ from fastapi import FastAPI
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from gt.auth.events import event_bus
-from gt.auth.routers.auth_router_registry import create_auth_router
-
+from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModel
+from .routers import create_auth_router
 
 
 class Auth:

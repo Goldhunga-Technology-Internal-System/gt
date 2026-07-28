@@ -1,7 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from gt.auth.models.auth_user_model import AuthUserModel
+from gt.auth.models import AuthUserModel
 from gt.exceptions import CreateException
 
 

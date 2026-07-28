@@ -1,10 +1,10 @@
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from gt.auth.models.auth_user_model import AuthUserModel
-from gt.auth.services.auth_user_service import AuthUserService, get_auth_user_service
+from gt.auth.models import AuthUserModel
+from gt.auth.services import AuthUserService, get_auth_user_service
 
-from ..uow.auth_uow import AuthUOW
+from ..uow import AuthUOW
 
 
 def create_user_router(

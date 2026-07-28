@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
 from ..models import AuthUserModel, AuthUserOnboardingModel
-from .auth_user_router import create_user_router
+from ._auth_user_router import create_user_router
 
 
 def create_auth_router(
