@@ -1,19 +1,27 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-def create_auth_user_session_model(base, UserModel):
-    """
-    Factory function to create the AuthUserSessionModel class.
+def create_auth_user_session_model(base: Any, UserModel: Any) -> Any:
+    """Factory function to dynamically create the AuthUserSessionModel class.
+
+    Injects the application-specific base and User model to establish
+    relationships and avoid circular dependencies.
+
+    Args:
+        base: The declarative base class (SQLAlchemy or SQLModel).
+        UserModel: The concrete user model class.
+
+    Returns:
+        The constructed AuthUserSessionModel class.
     """
 
     class AuthUserSessionModel(base):
-        """
-        AuthUserSessionModel is a model that represents a user session in the authentication system.
-        """
+        """Represents an active user session in the application."""
 
         __tablename__ = "auth_user_sessions"
 
@@ -30,7 +38,6 @@ def create_auth_user_session_model(base, UserModel):
             unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
         )
 
-        ## Optional fields
         device: Mapped[str | None] = mapped_column(
             String(255), nullable=True, default=None
         )
@@ -45,9 +52,11 @@ def create_auth_user_session_model(base, UserModel):
         )
 
         def __repr__(self) -> str:
-            return f"<AuthUserSessionModel(user_id={self.user_id}, session_token={self.session_token}, expires_at={self.expires_at})>"
+            """Provide representation details for debugging."""
+            return f"<AuthUserSessionModel(id={self.id}, uuid={self.uuid}, user_id={self.user_id}, expires_at={self.expires_at})>"
 
         def __str__(self) -> str:
-            return f"AuthUserSessionModel(user_id={self.user_id},  expires_at={self.expires_at})"
+            """Provide string format of the class."""
+            return f"AuthUserSessionModel(id={self.id}, uuid={self.uuid}, user_id={self.user_id}, expires_at={self.expires_at})"
 
     return AuthUserSessionModel

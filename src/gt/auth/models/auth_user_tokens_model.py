@@ -1,19 +1,27 @@
 import uuid
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 
-def create_auth_user_tokens_model(base, UserModel):
-    """
-    Factory function to create the AuthUserTokensModel class.
+def create_auth_user_tokens_model(base: Any, UserModel: Any) -> Any:
+    """Factory function to dynamically create the AuthUserTokensModel class.
+
+    Injects the application-specific base and User model to establish
+    relationships and avoid circular dependencies.
+
+    Args:
+        base: The declarative base class (SQLAlchemy or SQLModel).
+        UserModel: The concrete user model class.
+
+    Returns:
+        The constructed AuthUserTokensModel class.
     """
 
     class AuthUserTokensModel(base):
-        """
-        AuthUserTokensModel is a model that represents a user token in the authentication system.
-        """
+        """Represents a token issued for a user (e.g. password resets, verification)."""
 
         __tablename__ = "auth_user_tokens"
 
@@ -32,15 +40,16 @@ def create_auth_user_tokens_model(base, UserModel):
             unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
         )
 
-        ## Optional fields
         used_at: Mapped[datetime | None] = mapped_column(
             DateTime(timezone=True), nullable=True, default=None
         )
 
         def __repr__(self) -> str:
+            """Provide representation details for debugging."""
             return f"<AuthUserTokensModel(user_id={self.user_id}, type={self.type}, token_hash={self.token_hash}, expires_at={self.expires_at}, used_at={self.used_at})>"
 
         def __str__(self) -> str:
+            """Provide string format of the class."""
             return f"AuthUserTokensModel(user_id={self.user_id}, type={self.type}, expires_at={self.expires_at}, used_at={self.used_at})"
 
     return AuthUserTokensModel
