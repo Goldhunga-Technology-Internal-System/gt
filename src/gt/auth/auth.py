@@ -1,6 +1,11 @@
 from fastapi import FastAPI
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
+
+from gt.auth.models._auth_user_account_model import create_auth_user_account_model
+from gt.auth.models._auth_user_session_model import create_auth_user_session_model
+from gt.auth.models._auth_user_tokens_model import create_auth_user_tokens_model
 
 from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModel
@@ -15,6 +20,7 @@ class Auth:
     def __init__(
         self,
         *,
+        base: DeclarativeBase,
         session_factory: async_sessionmaker[AsyncSession],
         user_model: type[AuthUserModel],
         user_onboarding_model: type[AuthUserOnboardingModel],
@@ -25,10 +31,23 @@ class Auth:
         Initializes the Auth class.
         """
         self.session_factory = session_factory
+
+        ## models
         self.user_model = user_model
-        self.user_register_schema = user_register_schema
         self.user_onboarding_model = user_onboarding_model
+        self.user_account_model = create_auth_user_account_model(
+            base=base, UserModel=self.user_model
+        )
+        self.user_session_model = create_auth_user_session_model(
+            base=base, UserModel=self.user_model
+        )
+        self.user_tokens_model = create_auth_user_tokens_model(
+            base=base, UserModel=self.user_model
+        )
+
+        ## schemas
         self.onboarding_register_schema = onboarding_register_schema
+        self.user_register_schema = user_register_schema
         self.event_bus = event_bus
 
     def init_app(self, app: FastAPI):
@@ -58,9 +77,12 @@ class Auth:
         routers = create_auth_router(
             session_factory=self.session_factory,
             user_model=self.user_model,
-            user_register_schema=self.user_register_schema,
             user_onboarding_model=self.user_onboarding_model,
+            user_account_model=self.user_account_model,
+            user_session_model=self.user_session_model,
+            user_tokens_model=self.user_tokens_model,
             onboarding_register_schema=self.onboarding_register_schema,
+            user_register_schema=self.user_register_schema,
         )
         app.include_router(routers)
 

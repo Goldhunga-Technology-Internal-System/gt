@@ -1,6 +1,12 @@
+from ._auth_user_account_repository import AuthUserAccountRepository
 from ._auth_user_repository import AuthUserRepository
+from ._auth_user_session_repository import AuthUserSessionRepository
 
-__all__ = ["AuthUserRepository"]
+__all__ = [
+    "AuthUserAccountRepository",
+    "AuthUserRepository",
+    "AuthUserSessionRepository",
+]
 
 
 def __getattr__(name: str):

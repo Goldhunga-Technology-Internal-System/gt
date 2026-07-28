@@ -16,4 +16,6 @@ dependencies = [
     "ruff>=0.16.0",
     "sqlalchemy>=2.0.51",
     "sqlmodel>=0.0.39",
+    "argon2>=0.1.10",
+    "user-agents>=2.2.0",
 ]
