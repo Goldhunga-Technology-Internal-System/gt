@@ -47,7 +47,7 @@ class AuthUserService:
         device: str,
         browser: str,
         session_expire_minutes: int,
-    ) -> tuple[AuthUserModel, TSession]:
+    ) -> tuple[AuthUserModel, object]:
         """
         Create a new user instance.
         """
@@ -127,7 +127,7 @@ class AuthUserService:
         device: str,
         ip_address: str,
         browser: str,
-    ) -> TSession:
+    ) -> object:
         """
         Create a new user session.
         """

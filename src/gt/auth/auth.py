@@ -6,6 +6,7 @@ from sqlalchemy.orm import DeclarativeBase
 from gt.auth.models._auth_user_account_model import create_auth_user_account_model
 from gt.auth.models._auth_user_session_model import create_auth_user_session_model
 from gt.auth.models._auth_user_tokens_model import create_auth_user_tokens_model
+from gt.auth.schemas._auth_schemas import AuthUserRegisterSchema
 
 from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModel
@@ -24,7 +25,7 @@ class Auth:
         session_factory: async_sessionmaker[AsyncSession],
         user_model: type[AuthUserModel],
         user_onboarding_model: type[AuthUserOnboardingModel],
-        user_register_schema: type[BaseModel],
+        user_register_schema: type[BaseModel] = AuthUserRegisterSchema,
         onboarding_register_schema: type[BaseModel],
     ):
         """
