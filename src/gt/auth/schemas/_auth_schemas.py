@@ -1,5 +1,26 @@
+import random
+
 from pydantic import Field, model_validator
 from pydantic.main import BaseModel
+
+PASTEL_COLORS = [
+    "#F87171",  # red
+    "#FB923C",  # orange
+    "#FACC15",  # yellow
+    "#4ADE80",  # green
+    "#60A5FA",  # blue
+    "#818CF8",  # indigo
+    "#C084FC",  # purple
+    "#F472B6",  # pink
+    "#2DD4BF",  # teal
+]
+
+
+def random_avatar_color() -> str:
+    """
+    Returns a random pastel color from the predefined list of pastel colors.
+    """
+    return random.choice(PASTEL_COLORS)
 
 
 class AuthUserRegisterSchema(BaseModel):
@@ -10,6 +31,7 @@ class AuthUserRegisterSchema(BaseModel):
     email: str
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str | None = None
+    avatar_bg: str = Field(default_factory=random_avatar_color)
 
     @model_validator(mode="after")
     def calculate_full_name(self):

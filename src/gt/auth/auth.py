@@ -20,7 +20,7 @@ class Auth:
     def __init__(
         self,
         *,
-        base: DeclarativeBase,
+        base: type[DeclarativeBase],
         session_factory: async_sessionmaker[AsyncSession],
         user_model: type[AuthUserModel],
         user_onboarding_model: type[AuthUserOnboardingModel],

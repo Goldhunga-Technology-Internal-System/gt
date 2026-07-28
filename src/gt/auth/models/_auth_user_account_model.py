@@ -25,7 +25,9 @@ def create_auth_user_account_model(base: Any, UserModel: Any) -> Any:
 
         __tablename__ = "auth_user_accounts"
 
-        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+        id: Mapped[int] = mapped_column(
+            primary_key=True, autoincrement=True, init=False, kw_only=True
+        )
         type: Mapped[str] = mapped_column(String(255), nullable=False)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
@@ -33,7 +35,10 @@ def create_auth_user_account_model(base: Any, UserModel: Any) -> Any:
             index=True,
         )
         uuid: Mapped[str] = mapped_column(
-            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
+            unique=True,
+            nullable=False,
+            default_factory=lambda: str(uuid.uuid4()),
+            init=False,
         )
 
         hashed_password: Mapped[str | None] = mapped_column(
@@ -43,7 +48,7 @@ def create_auth_user_account_model(base: Any, UserModel: Any) -> Any:
             String(255), nullable=True, default=None
         )
         last_password_updated_at: Mapped[datetime | None] = mapped_column(
-            DateTime(timezone=True), nullable=True, default=None
+            DateTime(timezone=True), nullable=True, default=None, init=False
         )
 
         def __repr__(self) -> str:

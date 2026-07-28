@@ -1,5 +1,7 @@
 from typing import Any
 
+from gt.logger import logger
+
 
 class DomainException(Exception):
     """
@@ -21,6 +23,12 @@ class DomainException(Exception):
         # a full stack trace on construction floods logs and can leak internal
         # details; record a concise debug line instead. Genuinely unhandled
         # errors are still logged with a trace at the handler boundary.
+        logger.debug(
+            "Domain exception raised: %s, internal details: %s, errors: %s",
+            error,
+            internal_details,
+            errors,
+        )
         self.error = error
         self.errors = errors
 
