@@ -26,7 +26,7 @@ class Auth[TUser: AuthUserModel]:
         base: type[DeclarativeBase],
         session_factory: async_sessionmaker[AsyncSession],
         settings: AuthSettings | None = None,
-        user_model: type[TUser],
+        user_model: type[TUser] | None = None,
         user_onboarding_model: type[AuthUserOnboardingModel],
         user_register_schema: type[BaseModel] | None = None,
         onboarding_register_schema: type[BaseModel],
@@ -80,7 +80,7 @@ class Auth[TUser: AuthUserModel]:
 
     ## ----------------------------------------------- Dependencies ----------------------------------------------- ##
 
-    async def current_user(self, request: Request) -> TUser:
+    async def current_user(self, request: Request) -> TUser | AuthUserModel:
         """
         Dependency function to retrieve the current authenticated user.
         """
