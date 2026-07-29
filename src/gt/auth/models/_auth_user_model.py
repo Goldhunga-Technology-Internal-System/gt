@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import TypeVar
 
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
@@ -41,3 +42,14 @@ class AuthUserModel(MappedAsDataclass):
     avatar: Mapped[str | None] = mapped_column(
         String(255), nullable=True, default=None, kw_only=True
     )
+
+    def is_active(self) -> bool:
+        """Check if the user is active.
+
+        Returns:
+            bool: True if the user's status is 'active', False otherwise.
+        """
+        return self.status == "active"
+
+
+TUser = TypeVar("TUser", bound=AuthUserModel)

@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
@@ -8,6 +8,7 @@ from gt.auth.models._auth_user_session_model import create_auth_user_session_mod
 from gt.auth.models._auth_user_tokens_model import create_auth_user_tokens_model
 from gt.auth.schemas._auth_schemas import AuthUserRegisterSchema
 from gt.auth.settings import AuthSettings
+from gt.exceptions._base_exceptions import InvalidException
 
 from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModel
@@ -63,6 +64,7 @@ class Auth:
         self._register_routers(app)
         self._register_exceptions(app)
 
+    ## ----------------------------------------------- Decorators ----------------------------------------------- ##
     def on(self, event_type: type):
         """
         Registers an event handler for a specific event type.
@@ -75,6 +77,31 @@ class Auth:
             return handler
 
         return decorator
+
+    ## ----------------------------------------------- Dependencies ----------------------------------------------- ##
+
+    async def current_user(self, request: Request):
+        """
+        Dependency function to retrieve the current authenticated user.
+        """
+        from gt.auth.dependencies._current_user import current_user
+
+        session_uuid = request.cookies.get("session_uuid")
+        if not session_uuid:
+            raise InvalidException(
+                error="Session UUID cookie is missing. Please log in again.",
+            )
+
+        return await current_user(
+            session_uuid=session_uuid,
+            session_factory=self.session_factory,
+            user_model=self.user_model,
+            account_model=self.user_account_model,
+            session_model=self.user_session_model,
+            token_model=self.user_tokens_model,
+        )
+
+    ## ----------------------------------------------- Private Methods ----------------------------------------------- ##
 
     def _register_routers(self, app: FastAPI):
         """
