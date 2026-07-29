@@ -94,6 +94,20 @@ class AuthLoginService[TSession: AuthUserSessionModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def logout(self, session_uuid: str) -> None:
+        """
+        Logout a user by invalidating their session.
+        """
+        try:
+            await self._session_service.invalidate_session(session_uuid=session_uuid)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to logout.",
+                internal_details=str(e),
+            ) from e
+
 
 def get_auth_login_service(
     *,

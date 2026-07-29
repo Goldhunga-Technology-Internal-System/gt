@@ -60,3 +60,22 @@ class AuthUserSessionRepository[TSession: AuthUserSessionModelBase]:
                 error="Failed to retrieve session from the database.",
                 internal_details=str(e),
             ) from e
+
+    async def update(self, session_record: TSession) -> TSession:
+        """Update an existing session record in the database.
+
+        Args:
+            session_record: The session model instance to update.
+
+        Returns:
+            The updated session instance.
+        """
+        try:
+            await self.session.flush()
+            await self.session.refresh(session_record)
+            return session_record
+        except Exception as e:
+            raise CreateException(
+                error="Failed to update session in the database.",
+                internal_details=str(e),
+            ) from e

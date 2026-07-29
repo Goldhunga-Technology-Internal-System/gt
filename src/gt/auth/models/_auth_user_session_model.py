@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
@@ -34,6 +34,20 @@ class AuthUserSessionModelBase(MappedAsDataclass):
     revoked_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None, init=False
     )
+
+    @property
+    def is_expired(self) -> bool:
+        """Check if the session has expired based on the current time."""
+        return datetime.now(UTC) >= self.expires_at
+
+    @property
+    def is_active(self) -> bool:
+        """Check if the session is active (not expired and not revoked)."""
+        return not self.is_expired and self.revoked_at is None
+
+    def revoke(self) -> None:
+        """Mark the session as revoked by setting the revoked_at timestamp."""
+        self.revoked_at = datetime.now(UTC)
 
 
 def create_auth_user_session_model(base: Any, UserModel: Any) -> Any:

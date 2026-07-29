@@ -1,7 +1,7 @@
 from fastapi.requests import Request
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from starlette.status import HTTP_201_CREATED
+from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
 from gt.auth.models import AuthUserModel
 from gt.auth.repositories._auth_user_account_repository import TAccount
@@ -124,5 +124,37 @@ def create_user_router(
             domain=settings.cookie_domain,
             path=settings.cookie_path,
         )
+
+    @router.post("/logout")
+    async def logout(request: Request):
+        """
+        Endpoint to log out a user.
+        """
+        session_uuid = request.cookies.get("session_uuid")
+        if not session_uuid:
+            return cr.error(
+                error="No active session found.", status_code=HTTP_400_BAD_REQUEST
+            )
+
+        async with session_factory() as session:
+            login_service: AuthLoginService = get_auth_login_service(
+                session=session,
+                user_model=user_model,
+                account_model=user_account_model,
+                session_model=user_session_model,
+            )
+
+            async with AuthUOW(session):
+                await login_service.logout(session_uuid=session_uuid)
+
+            response = cr.success(message="User logged out successfully.")
+
+        # Clear the session cookie
+        response.delete_cookie(
+            key="session_uuid",
+            domain=settings.cookie_domain,
+            path=settings.cookie_path,
+        )
+        return response
 
     return router

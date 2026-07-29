@@ -84,6 +84,38 @@ class AuthUserSessionService[TSession: AuthUserSessionModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def invalidate_session(self, session_uuid: str) -> None:
+        """Invalidate a session by its UUID.
+
+        Args:
+            session_uuid: The UUID of the session to invalidate.
+
+        Raises:
+            DomainException: On unexpected failures.
+        """
+        try:
+            session = await self.get_session_by(uuid=session_uuid)
+            if not session:
+                raise DomainException(
+                    error="Session not found.",
+                    internal_details=f"No session found with uuid: {session_uuid}",
+                )
+            if not session.is_active:
+                raise DomainException(
+                    error="Session is already inactive.",
+                    internal_details=f"Session with uuid: {session_uuid} is already inactive.",
+                )
+
+            session.revoke()
+            await self._repository.update(session)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to invalidate session.",
+                internal_details=str(e),
+            ) from e
+
 
 def get_auth_user_session_service(
     session: AsyncSession, model: type[TSession]
