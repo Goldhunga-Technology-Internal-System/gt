@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.services._auth_user_session_service import (
     AuthUserSessionService,
@@ -18,7 +19,7 @@ from ..services._auth_user_account_service import (
 )
 
 
-class AuthUserService:
+class AuthUserService[TSession: AuthUserSessionModelBase]:
     """
     Service class for handling authentication-related operations for users.
     """
@@ -28,7 +29,7 @@ class AuthUserService:
         repository: AuthUserRepository,
         model: type[AuthUserModel],
         account_service: AuthUserAccountService,
-        session_service: AuthUserSessionService,
+        session_service: AuthUserSessionService[TSession],
     ):
         """
         Initialize the AuthUserService with a user repository.
@@ -47,7 +48,7 @@ class AuthUserService:
         device: str,
         browser: str,
         session_expire_minutes: int,
-    ) -> tuple[AuthUserModel, object]:
+    ) -> tuple[AuthUserModel, TSession]:
         """
         Create a new user instance.
         """
@@ -127,18 +128,19 @@ class AuthUserService:
         device: str,
         ip_address: str,
         browser: str,
-    ) -> object:
+    ) -> TSession:
         """
         Create a new user session.
         """
         try:
-            return await self._session_service.create_session(
+            session = await self._session_service.create_session(
                 user_id=user_id,
                 expire_minutes=expire_minutes,
                 device=device,
                 ip_address=ip_address,
                 browser=browser,
             )
+            return session
         except DomainException:
             raise
         except Exception as e:

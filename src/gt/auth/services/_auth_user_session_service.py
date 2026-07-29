@@ -1,15 +1,15 @@
 from datetime import UTC, datetime, timedelta
-from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.exceptions import DomainException
 
 from ..repositories import AuthUserSessionRepository
 
 
-class AuthUserSessionService[TSession]:
+class AuthUserSessionService[TSession: AuthUserSessionModelBase]:
     """Service for managing auth user session operations."""
 
     def __init__(
@@ -45,8 +45,7 @@ class AuthUserSessionService[TSession]:
             DomainException: On unexpected failures.
         """
         try:
-            model_cls = cast("type[Any]", self._model)
-            session = model_cls(
+            session = self._model(
                 user_id=user_id,
                 expires_at=datetime.now(UTC) + timedelta(minutes=expire_minutes),
                 device=device,
@@ -54,6 +53,7 @@ class AuthUserSessionService[TSession]:
                 browser=browser,
             )
             return await self._repository.add(session)
+
         except DomainException:
             raise
         except Exception as e:

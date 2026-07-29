@@ -3,12 +3,13 @@ from typing import TypeVar
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
 from gt.exceptions import CreateException
 
-TSession = TypeVar("TSession")
+TSession = TypeVar("TSession", bound=AuthUserSessionModelBase)
 
 
-class AuthUserSessionRepository[TSession]:
+class AuthUserSessionRepository[TSession: AuthUserSessionModelBase]:
     """Repository for managing auth user session persistence."""
 
     def __init__(self, session: AsyncSession, model: type[TSession]):

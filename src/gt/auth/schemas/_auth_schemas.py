@@ -1,6 +1,6 @@
 import random
 
-from pydantic import Field, model_validator
+from pydantic import EmailStr, Field, model_validator
 from pydantic.main import BaseModel
 
 PASTEL_COLORS = [
@@ -28,7 +28,7 @@ class AuthUserRegisterSchema(BaseModel):
     Schema for user registration.
     """
 
-    email: str
+    email: EmailStr = Field(..., max_length=255)
     password: str = Field(..., min_length=8, max_length=128)
     full_name: str | None = None
     avatar_bg: str = Field(default_factory=random_avatar_color)

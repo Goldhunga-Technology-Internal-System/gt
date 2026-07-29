@@ -3,7 +3,37 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
+
+
+class AuthUserSessionModelBase(MappedAsDataclass):
+    """
+    Base class for the AuthUserSessionModel.
+    """
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, init=False)
+    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+    uuid: Mapped[str] = mapped_column(
+        unique=True,
+        nullable=False,
+        default_factory=lambda: str(uuid.uuid4()),
+        init=False,
+    )
+
+    device: Mapped[str | None] = mapped_column(String(255), nullable=True, default=None)
+    ip_address: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    browser: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    revoked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None, init=False
+    )
 
 
 def create_auth_user_session_model(base: Any, UserModel: Any) -> Any:
@@ -20,40 +50,15 @@ def create_auth_user_session_model(base: Any, UserModel: Any) -> Any:
         The constructed AuthUserSessionModel class.
     """
 
-    class AuthUserSessionModel(base):
+    class AuthUserSessionModel(AuthUserSessionModelBase, base):
         """Represents an active user session in the application."""
 
         __tablename__ = "auth_user_sessions"
 
-        id: Mapped[int] = mapped_column(
-            primary_key=True, autoincrement=True, init=False
-        )
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
             index=True,
-        )
-        expires_at: Mapped[datetime] = mapped_column(
-            DateTime(timezone=True), nullable=False
-        )
-        uuid: Mapped[str] = mapped_column(
-            unique=True,
-            nullable=False,
-            default_factory=lambda: str(uuid.uuid4()),
-            init=False,
-        )
-
-        device: Mapped[str | None] = mapped_column(
-            String(255), nullable=True, default=None
-        )
-        ip_address: Mapped[str | None] = mapped_column(
-            String(255), nullable=True, default=None
-        )
-        browser: Mapped[str | None] = mapped_column(
-            String(255), nullable=True, default=None
-        )
-        revoked_at: Mapped[datetime | None] = mapped_column(
-            DateTime(timezone=True), nullable=True, default=None, init=False
         )
 
         def __repr__(self) -> str:

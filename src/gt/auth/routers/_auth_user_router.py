@@ -7,6 +7,7 @@ from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.services import AuthUserService, get_auth_user_service
 from gt.ip import IPService
+from gt.response import cr
 
 from ..uow import AuthUOW
 
@@ -43,7 +44,7 @@ def create_user_router(
 
             async with AuthUOW(session):
                 user = user_model(**body.model_dump(exclude={"password"}))
-                _, _ = await user_service.create_user(
+                _, user_session = await user_service.create_user(
                     user,
                     password=body.password,
                     ip_address=ip_context.ip_address,
@@ -52,6 +53,9 @@ def create_user_router(
                     session_expire_minutes=10,
                 )
 
-        return {"message": "Successfully registered user"}
+        return cr.success(
+            message="User registered successfully.",
+            data={"session_uuid": user_session.uuid},
+        )
 
     return router
