@@ -107,12 +107,8 @@ class Auth[TUser: AuthUserModel]:
             )
 
         return await current_user(
+            auth=self,
             session_uuid=session_uuid,
-            session_factory=self.session_factory,
-            user_model=self.user_model,
-            account_model=self.user_account_model,
-            session_model=self.user_session_model,
-            token_model=self.user_tokens_model,
         )
 
     ## ----------------------------------------------- Private Methods ----------------------------------------------- ##

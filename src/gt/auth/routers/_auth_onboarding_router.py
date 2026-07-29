@@ -1,6 +1,8 @@
+from fastapi import Depends
 from fastapi.requests import Request
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
+from gt.auth.dependencies._guards._require_access_guard import require_access
 from gt.auth.services._auth_user_onboarding_service import (
     get_auth_user_onboarding_service,
 )
@@ -23,7 +25,15 @@ def create_onboarding_router(*, auth):
 
     from fastapi import APIRouter
 
-    router = APIRouter()
+    router = APIRouter(
+        dependencies=[
+            Depends(
+                require_access(
+                    auth=auth, authenticated=True, email_verified=True, onboarded=False
+                )
+            )
+        ]
+    )
 
     @router.post("/onboarding")
     async def register_onboarding(

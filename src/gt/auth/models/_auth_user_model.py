@@ -52,6 +52,14 @@ class AuthUserModel(MappedAsDataclass):
         """
         return self.status == "active"
 
+    def is_email_verified(self) -> bool:
+        """Check if the user's email is verified.
+
+        Returns:
+            bool: True if the user's email_verified_at is not None, False otherwise.
+        """
+        return self.email_verified_at is not None
+
 
 TUser = TypeVar("TUser", bound=AuthUserModel)
 
