@@ -1,19 +1,12 @@
 from fastapi.requests import Request
-from pydantic.main import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
-from gt.auth.models._auth_user_model import TUser
-from gt.auth.repositories._auth_user_account_repository import TAccount
-from gt.auth.repositories._auth_user_session_repository import TSession
-from gt.auth.repositories._auth_user_tokens_repository import TToken
 from gt.auth.schemas._auth_schemas import AuthLoginRequestSchema
 from gt.auth.services import AuthUserService, get_auth_user_service
 from gt.auth.services._auth_login_service import (
     AuthLoginService,
     get_auth_login_service,
 )
-from gt.auth.settings import AuthSettings
 from gt.ip import IPService
 from gt.response import cr
 from gt.response._response import get_cookie_response
@@ -21,19 +14,17 @@ from gt.response._response import get_cookie_response
 from ..uow import AuthUOW
 
 
-def create_user_router(
-    *,
-    session_factory: async_sessionmaker[AsyncSession],
-    settings: AuthSettings,
-    user_model: type[TUser],
-    user_account_model: type[TAccount],
-    user_session_model: type[TSession],
-    user_tokens_model: type[TToken],
-    user_register_schema: type[BaseModel],
-):
+def create_user_router(*, auth):
     """
     Create a router for user-related operations.
     """
+    session_factory = auth.session_factory
+    settings = auth.settings
+    user_model = auth.user_model
+    user_account_model = auth.user_account_model
+    user_session_model = auth.user_session_model
+    user_tokens_model = auth.user_tokens_model
+    user_register_schema = auth.user_register_schema
 
     from fastapi import APIRouter
 

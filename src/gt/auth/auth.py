@@ -121,17 +121,7 @@ class Auth[TUser: AuthUserModel]:
         """
         Registers authentication-related routers to the FastAPI application.
         """
-        routers = create_auth_router(
-            session_factory=self.session_factory,
-            settings=self.settings,
-            user_model=self.user_model,
-            user_onboarding_model=self.user_onboarding_model,
-            user_account_model=self.user_account_model,
-            user_session_model=self.user_session_model,
-            user_tokens_model=self.user_tokens_model,
-            onboarding_register_schema=self.onboarding_register_schema,
-            user_register_schema=self.user_register_schema,
-        )
+        routers = create_auth_router(auth=self)
         app.include_router(routers)
 
     def _register_exceptions(self, app: FastAPI):

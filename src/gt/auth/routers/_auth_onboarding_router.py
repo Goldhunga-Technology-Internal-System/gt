@@ -1,11 +1,6 @@
 from fastapi.requests import Request
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
-from gt.auth.models._auth_user_model import TUser
-from gt.auth.models._auth_user_onboarding_model import TOnboarding
-from gt.auth.repositories._auth_user_session_repository import TSession
-from gt.auth.schemas._auth_onboarding_schemas import AuthOnboardingRegisterSchema
 from gt.auth.services._auth_user_onboarding_service import (
     get_auth_user_onboarding_service,
 )
@@ -17,17 +12,14 @@ from gt.response import cr
 from ..uow import AuthUOW
 
 
-def create_onboarding_router(
-    *,
-    session_factory: async_sessionmaker[AsyncSession],
-    user_model: type[TUser],
-    user_session_model: type[TSession],
-    user_onboarding_model: type[TOnboarding],
-    user_onboarding_register_schema: type[AuthOnboardingRegisterSchema],
-):
+def create_onboarding_router(*, auth):
     """
     Create a router for user onboarding operations.
     """
+    session_factory = auth.session_factory
+    user_session_model = auth.user_session_model
+    user_onboarding_model = auth.user_onboarding_model
+    user_onboarding_register_schema = auth.onboarding_register_schema
 
     from fastapi import APIRouter
 
