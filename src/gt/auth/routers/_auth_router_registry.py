@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
+from gt.auth.repositories._auth_user_tokens_repository import TToken
 from gt.auth.settings import AuthSettings
 
 from ..models import AuthUserModel, AuthUserOnboardingModel
@@ -18,7 +19,7 @@ def create_auth_router(
     user_onboarding_model: type[AuthUserOnboardingModel],
     user_account_model: type[TAccount],
     user_session_model: type[TSession],
-    user_tokens_model: type,
+    user_tokens_model: type[TToken],
     onboarding_register_schema: type[BaseModel],
     user_register_schema: type[BaseModel],
 ):
@@ -36,6 +37,7 @@ def create_auth_router(
             user_model=user_model,
             user_account_model=user_account_model,
             user_session_model=user_session_model,
+            user_tokens_model=user_tokens_model,
             user_register_schema=user_register_schema,
         )
     )

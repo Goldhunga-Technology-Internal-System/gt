@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from gt.auth.models import AuthUserModel
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
+from gt.auth.repositories._auth_user_tokens_repository import TToken
 from gt.auth.services import AuthUserService, get_auth_user_service
 from gt.auth.settings import AuthSettings
 from gt.ip import IPService
@@ -21,6 +22,7 @@ def create_user_router(
     user_model: type[AuthUserModel],
     user_account_model: type[TAccount],
     user_session_model: type[TSession],
+    user_tokens_model: type[TToken],
     user_register_schema: type[BaseModel],
 ):
     """
@@ -43,6 +45,7 @@ def create_user_router(
                 user_model=user_model,
                 account_model=user_account_model,
                 session_model=user_session_model,
+                token_model=user_tokens_model,
             )
 
             async with AuthUOW(session):
@@ -54,6 +57,8 @@ def create_user_router(
                     device=ip_context.device,
                     browser=ip_context.browser,
                     session_expire_minutes=10,
+                    email_token_expiry_minutes=settings.email_verification_token_expiry_minutes,
+                    email_token_digit=settings.email_verification_token_digit,
                 )
 
         response = cr.success(

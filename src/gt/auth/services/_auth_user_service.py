@@ -1,10 +1,18 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
+from gt.auth.models._auth_user_tokens_model import AuthUserTokensModelBase
 from gt.auth.repositories._auth_user_session_repository import TSession
+from gt.auth.repositories._auth_user_tokens_repository import TToken
 from gt.auth.services._auth_user_session_service import (
     AuthUserSessionService,
     get_auth_user_session_service,
+)
+from gt.auth.services._auth_user_tokens_service import (
+    AuthUserTokensService,
+    get_auth_user_tokens_service,
 )
 from gt.exceptions import ConflictException, DomainException
 
@@ -19,7 +27,10 @@ from ..services._auth_user_account_service import (
 )
 
 
-class AuthUserService[TSession: AuthUserSessionModelBase]:
+class AuthUserService[
+    TSession: AuthUserSessionModelBase,
+    TToken: AuthUserTokensModelBase,
+]:
     """
     Service class for handling authentication-related operations for users.
     """
@@ -30,6 +41,7 @@ class AuthUserService[TSession: AuthUserSessionModelBase]:
         model: type[AuthUserModel],
         account_service: AuthUserAccountService,
         session_service: AuthUserSessionService[TSession],
+        token_service: AuthUserTokensService[TToken],
     ):
         """
         Initialize the AuthUserService with a user repository.
@@ -39,6 +51,7 @@ class AuthUserService[TSession: AuthUserSessionModelBase]:
         self._model = model
         self._account_service = account_service
         self._session_service = session_service
+        self._token_service = token_service
 
     async def create_user(
         self,
@@ -48,6 +61,8 @@ class AuthUserService[TSession: AuthUserSessionModelBase]:
         device: str,
         browser: str,
         session_expire_minutes: int,
+        email_token_expiry_minutes: int,
+        email_token_digit: int,
     ) -> tuple[AuthUserModel, TSession]:
         """
         Create a new user instance.
@@ -73,8 +88,19 @@ class AuthUserService[TSession: AuthUserSessionModelBase]:
                 browser=browser,
             )
 
+            _, plain_token = await self._get_email_verification_token(
+                user_id=new_user.id,
+                email_token_expiry_minutes=email_token_expiry_minutes,
+                email_token_digit=email_token_digit,
+            )
+
             await event_bus.publish(
-                UserCreatedEvent(user_id=new_user.id, user_uuid=new_user.uuid)
+                UserCreatedEvent(
+                    user_id=new_user.id,
+                    user_uuid=new_user.uuid,
+                    email_token=plain_token,
+                    email_token_expiry_minutes=email_token_expiry_minutes,
+                )
             )
             return new_user, session
         except DomainException:
@@ -149,6 +175,46 @@ class AuthUserService[TSession: AuthUserSessionModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def _get_email_verification_token(
+        self, user_id: int, email_token_expiry_minutes: int, email_token_digit: int
+    ) -> tuple[TToken, str]:
+        """
+        Generate an email verification token for the specified user.
+        """
+        try:
+            token = self._random_token(digit=email_token_digit)
+            email_token = await self._token_service.create_token(
+                user_id=user_id,
+                type="email_verification",
+                token_hash=self._account_service._hash_service.deterministic_hash(
+                    token
+                ),
+                expires_at=datetime.now(UTC)
+                + timedelta(minutes=email_token_expiry_minutes),
+            )
+            return email_token, token
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to generate email verification token.",
+                internal_details=str(e),
+            ) from e
+
+    def _random_token(self, digit: int = 6) -> str:
+        """
+        Generates a cryptographically secure random numeric token with the
+        specified number of digits (used for short, user-typed OTP codes such
+        as email verification). Uses `secrets` rather than `random` so the
+        value is not predictable.
+        """
+        import secrets
+
+        range_start = 10 ** (digit - 1)
+        range_end = (10**digit) - 1
+        span = range_end - range_start + 1
+        return str(range_start + secrets.randbelow(span))
+
 
 def get_auth_user_service(
     *,
@@ -156,6 +222,7 @@ def get_auth_user_service(
     user_model: type[AuthUserModel],
     account_model: type[TAccount],
     session_model: type[TSession],
+    token_model: type[TToken],
 ) -> AuthUserService:
     """
     Factory function to create an instance of AuthUserService.
@@ -170,9 +237,13 @@ def get_auth_user_service(
     user_session_service = get_auth_user_session_service(
         session=session, model=session_model
     )
+    user_token_service = get_auth_user_tokens_service(
+        session=session, model=token_model
+    )
     return AuthUserService(
         repository=repository,
         model=user_model,
         account_service=user_account_service,
         session_service=user_session_service,
+        token_service=user_token_service,
     )
