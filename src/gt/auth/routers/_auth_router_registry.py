@@ -47,6 +47,8 @@ def create_auth_router(
     router.include_router(
         create_onboarding_router(
             session_factory=session_factory,
+            user_model=user_model,
+            user_session_model=user_session_model,
             user_onboarding_model=user_onboarding_model,
             user_onboarding_register_schema=onboarding_register_schema,
         )

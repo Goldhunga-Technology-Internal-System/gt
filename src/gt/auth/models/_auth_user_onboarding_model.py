@@ -31,6 +31,7 @@ class AuthUserOnboardingModelBase(MappedAsDataclass):
     referral_source: Mapped[str | None] = mapped_column(
         nullable=True, default=None, kw_only=True
     )
+    user_id: Mapped[int]  # This will be defined in the factory function
 
 
 TOnboarding = TypeVar("TOnboarding", bound=AuthUserOnboardingModelBase)

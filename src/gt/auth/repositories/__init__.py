@@ -1,10 +1,12 @@
 from ._auth_user_account_repository import AuthUserAccountRepository
+from ._auth_user_onboarding_repository import AuthUserOnboardingRepository
 from ._auth_user_repository import AuthUserRepository
 from ._auth_user_session_repository import AuthUserSessionRepository
 from ._auth_user_tokens_repository import AuthUserTokensRepository
 
 __all__ = [
     "AuthUserAccountRepository",
+    "AuthUserOnboardingRepository",
     "AuthUserRepository",
     "AuthUserSessionRepository",
     "AuthUserTokensRepository",

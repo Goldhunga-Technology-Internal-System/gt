@@ -3,6 +3,10 @@ from ._auth_user_account_service import (
     AuthUserAccountService,
     get_auth_user_account_service,
 )
+from ._auth_user_onboarding_service import (
+    AuthUserOnboardingService,
+    get_auth_user_onboarding_service,
+)
 from ._auth_user_service import AuthUserService, get_auth_user_service
 from ._auth_user_session_service import (
     AuthUserSessionService,
@@ -16,11 +20,13 @@ from ._auth_user_tokens_service import (
 __all__ = [
     "AuthLoginService",
     "AuthUserAccountService",
+    "AuthUserOnboardingService",
     "AuthUserService",
     "AuthUserSessionService",
     "AuthUserTokensService",
     "get_auth_login_service",
     "get_auth_user_account_service",
+    "get_auth_user_onboarding_service",
     "get_auth_user_service",
     "get_auth_user_session_service",
     "get_auth_user_tokens_service",
