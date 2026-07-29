@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from typing import TypeVar
+from typing import ClassVar, TypeVar, cast
 
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
@@ -14,6 +14,7 @@ class AuthUserModel(MappedAsDataclass):
     """
 
     __abstract__ = True
+    __tablename__: ClassVar[str]
 
     id: Mapped[int] = mapped_column(
         primary_key=True, autoincrement=True, init=False, kw_only=True
@@ -53,3 +54,24 @@ class AuthUserModel(MappedAsDataclass):
 
 
 TUser = TypeVar("TUser", bound=AuthUserModel)
+
+
+def create_auth_user_model(
+    base: type,
+    model: type[TUser] = AuthUserModel,
+) -> type[TUser]:
+    """Create the concrete user model.
+
+    If a custom user model is provided, it is used as the base model.
+    Otherwise, ``AuthUserModel`` is used.
+
+    If the model does not define ``__tablename__``, it defaults to
+    ``"auth_users"``.
+    """
+
+    attrs: dict[str, object] = {}
+
+    if "__tablename__" not in model.__dict__:
+        attrs["__tablename__"] = "auth_users"
+    cls = type(model.__name__, (base, model), attrs)
+    return cast(type[TUser], cls)

@@ -2,8 +2,11 @@ from ._auth_user_account_model import (
     AuthUserAccountModelBase,
     create_auth_user_account_model,
 )
-from ._auth_user_model import AuthUserModel
-from ._auth_user_onboarding_model import AuthUserOnboardingModel
+from ._auth_user_model import AuthUserModel, create_auth_user_model
+from ._auth_user_onboarding_model import (
+    AuthUserOnboardingModelBase,
+    create_auth_user_onboarding_model,
+)
 from ._auth_user_session_model import (
     AuthUserSessionModelBase,
     create_auth_user_session_model,
@@ -16,10 +19,12 @@ from ._auth_user_tokens_model import (
 __all__ = [
     "AuthUserAccountModelBase",
     "AuthUserModel",
-    "AuthUserOnboardingModel",
+    "AuthUserOnboardingModelBase",
     "AuthUserSessionModelBase",
     "AuthUserTokensModelBase",
     "create_auth_user_account_model",
+    "create_auth_user_model",
+    "create_auth_user_onboarding_model",
     "create_auth_user_session_model",
     "create_auth_user_tokens_model",
 ]

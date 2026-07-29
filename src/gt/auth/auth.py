@@ -4,14 +4,20 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
 from gt.auth.models._auth_user_account_model import create_auth_user_account_model
+from gt.auth.models._auth_user_model import create_auth_user_model
+from gt.auth.models._auth_user_onboarding_model import (
+    TOnboarding,
+    create_auth_user_onboarding_model,
+)
 from gt.auth.models._auth_user_session_model import create_auth_user_session_model
 from gt.auth.models._auth_user_tokens_model import create_auth_user_tokens_model
+from gt.auth.schemas._auth_onboarding_schemas import AuthOnboardingRegisterSchema
 from gt.auth.schemas._auth_schemas import AuthUserRegisterSchema
 from gt.auth.settings import AuthSettings
 from gt.exceptions._base_exceptions import InvalidException
 
 from .events import event_bus
-from .models import AuthUserModel, AuthUserOnboardingModel
+from .models import AuthUserModel, AuthUserOnboardingModelBase
 from .routers import create_auth_router
 
 
@@ -27,9 +33,9 @@ class Auth[TUser: AuthUserModel]:
         session_factory: async_sessionmaker[AsyncSession],
         settings: AuthSettings | None = None,
         user_model: type[TUser] | None = None,
-        user_onboarding_model: type[AuthUserOnboardingModel],
+        user_onboarding_model: type[TOnboarding] | None = None,
         user_register_schema: type[BaseModel] | None = None,
-        onboarding_register_schema: type[BaseModel],
+        onboarding_register_schema: type[AuthOnboardingRegisterSchema] | None = None,
     ):
         """
         Initializes the Auth class.
@@ -40,8 +46,14 @@ class Auth[TUser: AuthUserModel]:
         self.settings = settings or AuthSettings()
 
         ## models
-        self.user_model = user_model or AuthUserModel
-        self.user_onboarding_model = user_onboarding_model
+        self.user_model = create_auth_user_model(
+            base=base, model=user_model or AuthUserModel
+        )
+        self.user_onboarding_model = create_auth_user_onboarding_model(
+            base=base,
+            user_model=self.user_model,
+            model=user_onboarding_model or AuthUserOnboardingModelBase,
+        )
         self.user_account_model = create_auth_user_account_model(
             base=base, UserModel=self.user_model
         )
@@ -53,7 +65,9 @@ class Auth[TUser: AuthUserModel]:
         )
 
         ## schemas
-        self.onboarding_register_schema = onboarding_register_schema
+        self.onboarding_register_schema = (
+            onboarding_register_schema or AuthOnboardingRegisterSchema
+        )
         self.user_register_schema = user_register_schema or AuthUserRegisterSchema
         self.event_bus = event_bus
 
