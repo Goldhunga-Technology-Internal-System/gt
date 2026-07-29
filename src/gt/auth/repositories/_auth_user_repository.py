@@ -33,6 +33,20 @@ class AuthUserRepository[TUser: AuthUserModel]:
                 internal_details=str(e),
             ) from e
 
+    async def update(self, user: TUser) -> TUser:
+        """
+        Update an existing user in the database.
+        """
+        try:
+            await self.session.flush()
+            await self.session.refresh(user)
+            return user
+        except Exception as e:
+            raise CreateException(
+                error="Failed to update user in the database.",
+                internal_details=str(e),
+            ) from e
+
     async def get_by(self, **kwargs) -> TUser | None:
         """
         Retrieve a user from the database based on provided keyword arguments.

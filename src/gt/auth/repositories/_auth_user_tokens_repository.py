@@ -42,6 +42,25 @@ class AuthUserTokensRepository[TToken: AuthUserTokensModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def update(self, token: TToken) -> TToken:
+        """Update an existing token record in the database.
+
+        Args:
+            token: The token model instance to update.
+
+        Returns:
+            The updated token instance.
+        """
+        try:
+            await self.session.flush()
+            await self.session.refresh(token)
+            return token
+        except Exception as e:
+            raise CreateException(
+                error="Failed to update token in the database.",
+                internal_details=str(e),
+            ) from e
+
     async def get_by(self, **kwargs) -> TToken | None:
         """Retrieve a token record by arbitrary filter criteria.
 

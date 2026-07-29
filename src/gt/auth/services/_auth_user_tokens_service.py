@@ -64,6 +64,28 @@ class AuthUserTokensService[TToken: AuthUserTokensModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def update_token(self, token: TToken) -> TToken:
+        """Update an existing token record.
+
+        Args:
+            token: The token model instance with modified attributes.
+
+        Returns:
+            The updated token instance.
+
+        Raises:
+            DomainException: On unexpected failures.
+        """
+        try:
+            return await self._repository.update(token)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to update token.",
+                internal_details=str(e),
+            ) from e
+
     async def get_token_by(self, **kwargs) -> TToken | None:
         """Retrieve a token by filter criteria.
 
