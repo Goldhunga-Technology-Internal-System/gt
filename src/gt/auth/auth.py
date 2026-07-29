@@ -15,7 +15,7 @@ from .models import AuthUserModel, AuthUserOnboardingModel
 from .routers import create_auth_router
 
 
-class Auth:
+class Auth[TUser: AuthUserModel]:
     """
     This class is responsible for handling authentication and authorization in the application.
     """
@@ -26,9 +26,9 @@ class Auth:
         base: type[DeclarativeBase],
         session_factory: async_sessionmaker[AsyncSession],
         settings: AuthSettings | None = None,
-        user_model: type[AuthUserModel],
+        user_model: type[TUser],
         user_onboarding_model: type[AuthUserOnboardingModel],
-        user_register_schema: type[BaseModel],
+        user_register_schema: type[BaseModel] | None = None,
         onboarding_register_schema: type[BaseModel],
     ):
         """
@@ -40,7 +40,7 @@ class Auth:
         self.settings = settings or AuthSettings()
 
         ## models
-        self.user_model = user_model
+        self.user_model = user_model or AuthUserModel
         self.user_onboarding_model = user_onboarding_model
         self.user_account_model = create_auth_user_account_model(
             base=base, UserModel=self.user_model
@@ -80,7 +80,7 @@ class Auth:
 
     ## ----------------------------------------------- Dependencies ----------------------------------------------- ##
 
-    async def current_user(self, request: Request):
+    async def current_user(self, request: Request) -> TUser:
         """
         Dependency function to retrieve the current authenticated user.
         """

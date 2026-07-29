@@ -3,7 +3,7 @@ from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from starlette.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 
-from gt.auth.models import AuthUserModel
+from gt.auth.models._auth_user_model import TUser
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.repositories._auth_user_tokens_repository import TToken
@@ -25,7 +25,7 @@ def create_user_router(
     *,
     session_factory: async_sessionmaker[AsyncSession],
     settings: AuthSettings,
-    user_model: type[AuthUserModel],
+    user_model: type[TUser],
     user_account_model: type[TAccount],
     user_session_model: type[TSession],
     user_tokens_model: type[TToken],

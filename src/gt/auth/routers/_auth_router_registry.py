@@ -2,12 +2,13 @@ from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.asyncio.session import async_sessionmaker
 
+from gt.auth.models._auth_user_model import TUser
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.repositories._auth_user_tokens_repository import TToken
 from gt.auth.settings import AuthSettings
 
-from ..models import AuthUserModel, AuthUserOnboardingModel
+from ..models import AuthUserOnboardingModel
 from ._auth_user_router import create_user_router
 
 
@@ -15,7 +16,7 @@ def create_auth_router(
     *,
     session_factory: async_sessionmaker[AsyncSession],
     settings: AuthSettings,
-    user_model: type[AuthUserModel],
+    user_model: type[TUser],
     user_onboarding_model: type[AuthUserOnboardingModel],
     user_account_model: type[TAccount],
     user_session_model: type[TSession],

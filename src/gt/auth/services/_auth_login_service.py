@@ -1,5 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_account_model import AuthUserAccountModelBase
+from gt.auth.models._auth_user_model import TUser
 from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
 from gt.exceptions import DomainException
 from gt.exceptions._base_exceptions import InvalidException
@@ -19,7 +21,11 @@ from ..services._auth_user_session_service import (
 from ..services.hash._hash_service import HasherService
 
 
-class AuthLoginService[TSession: AuthUserSessionModelBase]:
+class AuthLoginService[
+    TUser: AuthUserModel,
+    TAccount: AuthUserAccountModelBase,
+    TSession: AuthUserSessionModelBase,
+]:
     """
     Service for handling user login functionality.
     """
@@ -27,8 +33,8 @@ class AuthLoginService[TSession: AuthUserSessionModelBase]:
     def __init__(
         self,
         user_repository: AuthUserRepository,
-        user_model: type[AuthUserModel],
-        account_service: AuthUserAccountService,
+        user_model: type[TUser],
+        account_service: AuthUserAccountService[TAccount],
         session_service: AuthUserSessionService[TSession],
         hash_service: HasherService,
     ):
@@ -46,7 +52,7 @@ class AuthLoginService[TSession: AuthUserSessionModelBase]:
         device: str,
         browser: str,
         session_expire_minutes: int,
-    ) -> tuple[AuthUserModel, TSession]:
+    ) -> tuple[TUser, TSession]:
         """
         Authenticate a user with the provided email and password.
         """
@@ -112,10 +118,10 @@ class AuthLoginService[TSession: AuthUserSessionModelBase]:
 def get_auth_login_service(
     *,
     session: AsyncSession,
-    user_model: type[AuthUserModel],
+    user_model: type[TUser],
     account_model: type[TAccount],
     session_model: type[TSession],
-) -> AuthLoginService:
+) -> AuthLoginService[TUser, TAccount, TSession]:
     """
     Factory function to create an instance of AuthLoginService with the provided dependencies.
     """

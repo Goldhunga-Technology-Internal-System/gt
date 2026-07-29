@@ -2,6 +2,7 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_model import TUser
 from gt.auth.models._auth_user_session_model import AuthUserSessionModelBase
 from gt.auth.models._auth_user_tokens_model import AuthUserTokensModelBase
 from gt.auth.repositories._auth_user_session_repository import TSession
@@ -28,6 +29,7 @@ from ..services._auth_user_account_service import (
 
 
 class AuthUserService[
+    TUser: AuthUserModel,
     TSession: AuthUserSessionModelBase,
     TToken: AuthUserTokensModelBase,
 ]:
@@ -38,7 +40,7 @@ class AuthUserService[
     def __init__(
         self,
         repository: AuthUserRepository,
-        model: type[AuthUserModel],
+        model: type[TUser],
         account_service: AuthUserAccountService,
         session_service: AuthUserSessionService[TSession],
         token_service: AuthUserTokensService[TToken],
@@ -55,7 +57,7 @@ class AuthUserService[
 
     async def create_user(
         self,
-        user: AuthUserModel,
+        user: TUser,
         ip_address: str,
         device: str,
         browser: str,
@@ -63,7 +65,7 @@ class AuthUserService[
         email_token_expiry_minutes: int,
         email_token_digit: int,
         password: str | None = None,
-    ) -> tuple[AuthUserModel, TSession]:
+    ) -> tuple[TUser, TSession]:
         """
         Create a new user instance.
         """
@@ -135,7 +137,7 @@ class AuthUserService[
                 internal_details=str(e),
             ) from e
 
-    async def get_user_by(self, **kwargs) -> AuthUserModel | None:
+    async def get_user_by(self, **kwargs) -> TUser | None:
         """
         Retrieve a user instance based on provided keyword arguments.
         """
@@ -221,11 +223,11 @@ class AuthUserService[
 def get_auth_user_service(
     *,
     session: AsyncSession,
-    user_model: type[AuthUserModel],
+    user_model: type[TUser],
     account_model: type[TAccount],
     session_model: type[TSession],
     token_model: type[TToken],
-) -> AuthUserService:
+) -> AuthUserService[TUser, TSession, TToken]:
     """
     Factory function to create an instance of AuthUserService.
 

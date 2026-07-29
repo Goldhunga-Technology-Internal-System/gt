@@ -4,22 +4,22 @@ Current user dependency for FastAPI routes. This module provides a function to r
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from gt.auth.models._auth_user_model import AuthUserModel
+from gt.auth.models._auth_user_model import TUser
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.repositories._auth_user_tokens_repository import TToken
-from gt.auth.services._auth_user_service import AuthUserService, get_auth_user_service
+from gt.auth.services._auth_user_service import get_auth_user_service
 from gt.exceptions._base_exceptions import InvalidException
 
 
 async def current_user(
     session_uuid: str,
     session_factory: async_sessionmaker[AsyncSession],
-    user_model: type[AuthUserModel],
+    user_model: type[TUser],
     account_model: type[TAccount],
     session_model: type[TSession],
     token_model: type[TToken],
-) -> AuthUserModel:
+) -> TUser:
     """
     Dependency function to retrieve the current authenticated user.
 
@@ -28,7 +28,7 @@ async def current_user(
     """
     # Implementation to retrieve the current user based on session uuid
     async with session_factory() as session:
-        user_service: AuthUserService = get_auth_user_service(
+        user_service = get_auth_user_service(
             session=session,
             user_model=user_model,
             account_model=account_model,

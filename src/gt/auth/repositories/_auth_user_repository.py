@@ -5,12 +5,12 @@ from gt.auth.models import AuthUserModel
 from gt.exceptions import CreateException
 
 
-class AuthUserRepository:
+class AuthUserRepository[TUser: AuthUserModel]:
     """
     Auth user repository class for managing user authentication and related operations.
     """
 
-    def __init__(self, session: AsyncSession, model: type[AuthUserModel]):
+    def __init__(self, session: AsyncSession, model: type[TUser]):
         """
         Initialize the AuthUserRepository with a database session and a model.
         """
@@ -18,7 +18,7 @@ class AuthUserRepository:
         self.session = session
         self.model = model
 
-    async def add(self, user: AuthUserModel) -> AuthUserModel:
+    async def add(self, user: TUser) -> TUser:
         """
         Add a new user to the database.
         """
@@ -33,7 +33,7 @@ class AuthUserRepository:
                 internal_details=str(e),
             ) from e
 
-    async def get_by(self, **kwargs) -> AuthUserModel | None:
+    async def get_by(self, **kwargs) -> TUser | None:
         """
         Retrieve a user from the database based on provided keyword arguments.
         """
