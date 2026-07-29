@@ -3,7 +3,34 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
+
+
+class AuthUserAccountModelBase(MappedAsDataclass):
+    """Base class for the AuthUserAccountModel."""
+
+    id: Mapped[int] = mapped_column(
+        primary_key=True, autoincrement=True, init=False, kw_only=True
+    )
+    type: Mapped[str] = mapped_column(String(255), nullable=False)
+    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+
+    uuid: Mapped[str] = mapped_column(
+        unique=True,
+        nullable=False,
+        default_factory=lambda: str(uuid.uuid4()),
+        init=False,
+    )
+
+    hashed_password: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    provider: Mapped[str | None] = mapped_column(
+        String(255), nullable=True, default=None
+    )
+    last_password_updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None, init=False
+    )
 
 
 def create_auth_user_account_model(base: Any, UserModel: Any) -> Any:
@@ -20,35 +47,15 @@ def create_auth_user_account_model(base: Any, UserModel: Any) -> Any:
         The constructed AuthUserAccountModel class.
     """
 
-    class AuthUserAccountModel(base):
+    class AuthUserAccountModel(AuthUserAccountModelBase, base):
         """Represents a user credentials account (e.g., passwords or OAuth providers)."""
 
         __tablename__ = "auth_user_accounts"
 
-        id: Mapped[int] = mapped_column(
-            primary_key=True, autoincrement=True, init=False, kw_only=True
-        )
-        type: Mapped[str] = mapped_column(String(255), nullable=False)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
             index=True,
-        )
-        uuid: Mapped[str] = mapped_column(
-            unique=True,
-            nullable=False,
-            default_factory=lambda: str(uuid.uuid4()),
-            init=False,
-        )
-
-        hashed_password: Mapped[str | None] = mapped_column(
-            String(255), nullable=True, default=None
-        )
-        provider: Mapped[str | None] = mapped_column(
-            String(255), nullable=True, default=None
-        )
-        last_password_updated_at: Mapped[datetime | None] = mapped_column(
-            DateTime(timezone=True), nullable=True, default=None, init=False
         )
 
         def __repr__(self) -> str:

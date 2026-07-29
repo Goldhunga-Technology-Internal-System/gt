@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import Response, status
 from fastapi.encoders import jsonable_encoder
@@ -71,3 +71,48 @@ class CustomResponse:
             status_code=status_code,
             url=url,
         )
+
+
+## cookie response
+
+
+def get_cookie_response(
+    *,
+    response: Response,
+    key: str,
+    value: str,
+    max_age: int = 3600,
+    path: str = "/",
+    domain: str | None = None,
+    secure: bool = True,
+    httponly: bool = True,
+    samesite: Literal["lax", "strict", "none"] = "lax",
+):
+    """
+    Set a cookie in the response.
+
+    Args:
+        response (Response): The FastAPI response object.
+        key (str): The name of the cookie.
+        value (str): The value of the cookie.
+        max_age (int, optional): The maximum age of the cookie in seconds. Defaults to 3600.
+        path (str, optional): The path for which the cookie is valid. Defaults to "/".
+        domain (str | None, optional): The domain for which the cookie is valid. Defaults to None.
+        secure (bool, optional): Whether the cookie should only be sent over HTTPS. Defaults to True.
+        httponly (bool, optional): Whether the cookie should be inaccessible to JavaScript. Defaults to True.
+        samesite (str, optional): The SameSite attribute of the cookie. Defaults to "lax".
+
+    Returns:
+        Response: The response object with the cookie set.
+    """
+    response.set_cookie(
+        key=key,
+        value=value,
+        max_age=max_age,
+        path=path,
+        domain=domain,
+        secure=secure,
+        httponly=httponly,
+        samesite=samesite,
+    )
+    return response

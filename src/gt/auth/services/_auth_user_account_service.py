@@ -2,6 +2,7 @@ from typing import Any, Literal, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.models._auth_user_account_model import AuthUserAccountModelBase
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.exceptions import ConflictException, DomainException
 
@@ -11,7 +12,7 @@ from .hash._hash_service import HasherService
 ACCOUNT_TYPE_LITERAL = Literal["credentials", "oauth"]
 
 
-class AuthUserAccountService[TAccount]:
+class AuthUserAccountService[TAccount: AuthUserAccountModelBase]:
     """Service for managing auth user account operations."""
 
     def __init__(

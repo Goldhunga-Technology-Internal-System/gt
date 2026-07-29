@@ -6,8 +6,10 @@ from gt.auth.models import AuthUserModel
 from gt.auth.repositories._auth_user_account_repository import TAccount
 from gt.auth.repositories._auth_user_session_repository import TSession
 from gt.auth.services import AuthUserService, get_auth_user_service
+from gt.auth.settings import AuthSettings
 from gt.ip import IPService
 from gt.response import cr
+from gt.response._response import get_cookie_response
 
 from ..uow import AuthUOW
 
@@ -15,6 +17,7 @@ from ..uow import AuthUOW
 def create_user_router(
     *,
     session_factory: async_sessionmaker[AsyncSession],
+    settings: AuthSettings,
     user_model: type[AuthUserModel],
     user_account_model: type[TAccount],
     user_session_model: type[TSession],
@@ -53,9 +56,20 @@ def create_user_router(
                     session_expire_minutes=10,
                 )
 
-        return cr.success(
+        response = cr.success(
             message="User registered successfully.",
             data={"session_uuid": user_session.uuid},
+        )
+        return get_cookie_response(
+            response=response,
+            key="session_uuid",
+            value=str(user_session.uuid),
+            max_age=settings.session_expiration_minutes,
+            httponly=settings.cookie_httponly,
+            secure=settings.cookie_secure,
+            samesite=settings.cookie_samesite,
+            domain=settings.cookie_domain,
+            path=settings.cookie_path,
         )
 
     return router

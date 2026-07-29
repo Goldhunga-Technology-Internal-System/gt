@@ -3,7 +3,30 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import DateTime, ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
+
+
+class AuthUserTokensModelBase(MappedAsDataclass):
+    """Base class for the AuthUserTokensModel."""
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, init=False)
+    user_id: Mapped[int] = mapped_column(nullable=False, index=True)
+
+    type: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    token_hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    expires_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, index=True
+    )
+    uuid: Mapped[str] = mapped_column(
+        unique=True,
+        nullable=False,
+        default_factory=lambda: str(uuid.uuid4()),
+        init=False,
+    )
+
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None, init=False
+    )
 
 
 def create_auth_user_tokens_model(base: Any, UserModel: Any) -> Any:
@@ -20,28 +43,15 @@ def create_auth_user_tokens_model(base: Any, UserModel: Any) -> Any:
         The constructed AuthUserTokensModel class.
     """
 
-    class AuthUserTokensModel(base):
+    class AuthUserTokensModel(AuthUserTokensModelBase, base):
         """Represents a token issued for a user (e.g. password resets, verification)."""
 
         __tablename__ = "auth_user_tokens"
 
-        id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
         user_id: Mapped[int] = mapped_column(
             ForeignKey(f"{UserModel.__tablename__}.id", ondelete="cascade"),
             nullable=False,
             index=True,
-        )
-        type: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-        token_hash: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
-        expires_at: Mapped[datetime] = mapped_column(
-            DateTime(timezone=True), nullable=False, index=True
-        )
-        uuid: Mapped[str] = mapped_column(
-            unique=True, nullable=False, default_factory=lambda: str(uuid.uuid4())
-        )
-
-        used_at: Mapped[datetime | None] = mapped_column(
-            DateTime(timezone=True), nullable=True, default=None
         )
 
         def __repr__(self) -> str:

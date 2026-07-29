@@ -7,6 +7,7 @@ from gt.auth.models._auth_user_account_model import create_auth_user_account_mod
 from gt.auth.models._auth_user_session_model import create_auth_user_session_model
 from gt.auth.models._auth_user_tokens_model import create_auth_user_tokens_model
 from gt.auth.schemas._auth_schemas import AuthUserRegisterSchema
+from gt.auth.settings import AuthSettings
 
 from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModel
@@ -23,15 +24,19 @@ class Auth:
         *,
         base: type[DeclarativeBase],
         session_factory: async_sessionmaker[AsyncSession],
+        settings: AuthSettings | None = None,
         user_model: type[AuthUserModel],
         user_onboarding_model: type[AuthUserOnboardingModel],
-        user_register_schema: type[BaseModel] = AuthUserRegisterSchema,
+        user_register_schema: type[BaseModel],
         onboarding_register_schema: type[BaseModel],
     ):
         """
         Initializes the Auth class.
         """
         self.session_factory = session_factory
+
+        ## setting
+        self.settings = settings or AuthSettings()
 
         ## models
         self.user_model = user_model
@@ -48,7 +53,7 @@ class Auth:
 
         ## schemas
         self.onboarding_register_schema = onboarding_register_schema
-        self.user_register_schema = user_register_schema
+        self.user_register_schema = user_register_schema or AuthUserRegisterSchema
         self.event_bus = event_bus
 
     def init_app(self, app: FastAPI):
@@ -77,6 +82,7 @@ class Auth:
         """
         routers = create_auth_router(
             session_factory=self.session_factory,
+            settings=self.settings,
             user_model=self.user_model,
             user_onboarding_model=self.user_onboarding_model,
             user_account_model=self.user_account_model,
