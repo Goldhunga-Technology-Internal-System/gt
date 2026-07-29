@@ -44,3 +44,12 @@ class AuthUserRegisterSchema(BaseModel):
                 username.replace(".", " ").replace("_", " ").replace("-", " ").title()
             )
         return self
+
+
+class AuthLoginRequestSchema(BaseModel):
+    """
+    Schema for user login request.
+    """
+
+    email: EmailStr = Field(..., max_length=255)
+    password: str = Field(..., max_length=128)

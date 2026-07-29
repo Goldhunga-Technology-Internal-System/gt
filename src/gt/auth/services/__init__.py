@@ -1,3 +1,4 @@
+from ._auth_login_service import AuthLoginService, get_auth_login_service
 from ._auth_user_account_service import (
     AuthUserAccountService,
     get_auth_user_account_service,
@@ -13,10 +14,12 @@ from ._auth_user_tokens_service import (
 )
 
 __all__ = [
+    "AuthLoginService",
     "AuthUserAccountService",
     "AuthUserService",
     "AuthUserSessionService",
     "AuthUserTokensService",
+    "get_auth_login_service",
     "get_auth_user_account_service",
     "get_auth_user_service",
     "get_auth_user_session_service",

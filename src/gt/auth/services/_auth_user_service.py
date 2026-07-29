@@ -56,13 +56,13 @@ class AuthUserService[
     async def create_user(
         self,
         user: AuthUserModel,
-        password: str | None,
         ip_address: str,
         device: str,
         browser: str,
         session_expire_minutes: int,
         email_token_expiry_minutes: int,
         email_token_digit: int,
+        password: str | None = None,
     ) -> tuple[AuthUserModel, TSession]:
         """
         Create a new user instance.

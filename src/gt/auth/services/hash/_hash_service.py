@@ -25,7 +25,10 @@ class HasherService:
         """
         Verifies a plain text against a hashed text.
         """
-        return self.hasher.verify(hashed_password, plain_password)
+        try:
+            return self.hasher.verify(hashed_password, plain_password)
+        except Exception:  # noqa: BLE001  pylint: disable=broad-exception-caught
+            return False
 
     def dummy_verify(self, plain_password: str) -> None:
         """

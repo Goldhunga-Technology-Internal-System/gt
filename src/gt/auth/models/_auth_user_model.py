@@ -2,10 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, MappedAsDataclass, mapped_column
 
 
-class AuthUserModel:
+class AuthUserModel(MappedAsDataclass):
     """Represents a user in the authentication system.
 
     This model serves as an abstract base for user information, intended to be

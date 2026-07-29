@@ -23,7 +23,7 @@ class DomainException(Exception):
         # a full stack trace on construction floods logs and can leak internal
         # details; record a concise debug line instead. Genuinely unhandled
         # errors are still logged with a trace at the handler boundary.
-        logger.debug(
+        logger.exception(
             "Domain exception raised: %s, internal details: %s, errors: %s",
             error,
             internal_details,
@@ -94,6 +94,23 @@ class ConflictException(DomainException):
     def __init__(
         self,
         error: str = "Conflict Error",
+        internal_details: Any | None = None,
+        errors: Any | None = None,
+    ):
+        """Initialize with detail message and optional data."""
+        super().__init__(error=error, internal_details=internal_details, errors=errors)
+
+
+class InvalidException(DomainException):
+    """
+    Custom Exception for invalid error
+    """
+
+    code: str = "invalid_error"
+
+    def __init__(
+        self,
+        error: str = "Invalid Error",
         internal_details: Any | None = None,
         errors: Any | None = None,
     ):
