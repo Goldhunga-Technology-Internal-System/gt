@@ -10,9 +10,11 @@ def create_auth_router(*, auth):
 
     from fastapi import APIRouter
 
-    router = APIRouter(prefix="/auth", tags=["Authentication"])
-    router.include_router(create_user_router(auth=auth))
-    router.include_router(create_onboarding_router(auth=auth))
-    router.include_router(create_email_router(auth=auth))
+    router = APIRouter(prefix="/auth")
+    router.include_router(create_user_router(auth=auth), tags=["Authentication Core"])
+    router.include_router(
+        create_onboarding_router(auth=auth), tags=["Authentication Onboarding"]
+    )
+    router.include_router(create_email_router(auth=auth), tags=["Authentication Email"])
 
     return router
