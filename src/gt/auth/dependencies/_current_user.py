@@ -36,14 +36,16 @@ async def current_user(
             token_model=token_model,
         )
 
-        session = await user_service._session_service.get_session_by(uuid=session_uuid)
+        user_session = await user_service._session_service.get_session_by(
+            uuid=session_uuid
+        )
 
-        if not session or not session.is_active:
+        if not user_session or not user_session.is_active:
             raise InvalidException(
                 error="Invalid or expired session.",
             )
 
-        user = await user_service.get_user_by(id=session.user_id)
+        user = await user_service.get_user_by(id=user_session.user_id)
 
         if not user or not user.is_active():
             raise InvalidException(
