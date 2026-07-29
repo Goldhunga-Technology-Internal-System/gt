@@ -98,6 +98,8 @@ class AuthUserService[
                 UserCreatedEvent(
                     user_id=new_user.id,
                     user_uuid=new_user.uuid,
+                    full_name=new_user.full_name,
+                    email=new_user.email,
                     email_token=plain_token,
                     email_token_expiry_minutes=email_token_expiry_minutes,
                 )

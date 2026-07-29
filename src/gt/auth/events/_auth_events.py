@@ -18,6 +18,8 @@ class UserCreatedEvent(DomainEvent):
     """
 
     user_id: int
+    full_name: str
+    email: str
     user_uuid: str
     email_token: str
     email_token_expiry_minutes: int
