@@ -1,4 +1,5 @@
-from fastapi import Request
+from fastapi import Depends, Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from gt.auth.policies import UserPolicies
 from gt.exceptions._base_exceptions import UnauthorizedException
@@ -18,10 +19,15 @@ def require_access(
 
     async def dependency(
         request: Request,
+        session: AsyncSession = Depends(auth.get_db_session),
     ):
 
         session_uuid = request.cookies.get("session_uuid")
-        user = await auth.current_user(request=request) if session_uuid else None
+        user = (
+            await auth.current_user(request=request, session=session)
+            if session_uuid
+            else None
+        )
 
         if needs_user and user is None:
             raise UnauthorizedException(

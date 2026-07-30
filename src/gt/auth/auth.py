@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 from fastapi import FastAPI, Request
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -94,7 +96,9 @@ class Auth[TUser: AuthUserModel]:
 
     ## ----------------------------------------------- Dependencies ----------------------------------------------- ##
 
-    async def current_user(self, request: Request) -> TUser | AuthUserModel:
+    async def current_user(
+        self, request: Request, session: AsyncSession
+    ) -> TUser | AuthUserModel:
         """
         Dependency function to retrieve the current authenticated user.
         """
@@ -108,10 +112,20 @@ class Auth[TUser: AuthUserModel]:
 
         return await current_user(
             auth=self,
+            session=session,
             session_uuid=session_uuid,
         )
 
-    ## ----------------------------------------------- Private Methods ----------------------------------------------- ##
+    ## ----------------------------------------------- Session Methods ----------------------------------------------- ##
+
+    async def get_db_session(self) -> AsyncGenerator[AsyncSession]:
+        """
+        Provides a database session for use in the application.
+        """
+        async with self.session_factory() as session:
+            yield session
+
+    ## ----------------------------------------------- Internal Methods ----------------------------------------------- ##
 
     def _register_routers(self, app: FastAPI):
         """
