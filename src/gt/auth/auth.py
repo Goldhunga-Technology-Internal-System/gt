@@ -1,6 +1,6 @@
 from collections.abc import AsyncGenerator
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
@@ -96,25 +96,33 @@ class Auth[TUser: AuthUserModel]:
 
     ## ----------------------------------------------- Dependencies ----------------------------------------------- ##
 
-    async def current_user(
-        self, request: Request, session: AsyncSession
-    ) -> TUser | AuthUserModel:
+    def current_user(
+        self,
+    ):
         """
         Dependency function to retrieve the current authenticated user.
         """
-        from gt.auth.dependencies._current_user import current_user
 
-        session_uuid = request.cookies.get("session_uuid")
-        if not session_uuid:
-            raise InvalidException(
-                error="Session UUID cookie is missing. Please log in again.",
+        async def dependency(
+            request: Request,
+            session: AsyncSession = Depends(self.get_db_session),
+        ):
+
+            from gt.auth.dependencies._current_user import current_user
+
+            session_uuid = request.cookies.get("session_uuid")
+            if not session_uuid:
+                raise InvalidException(
+                    error="Session UUID cookie is missing. Please log in again.",
+                )
+
+            return await current_user(
+                auth=self,
+                session=session,
+                session_uuid=session_uuid,
             )
 
-        return await current_user(
-            auth=self,
-            session=session,
-            session_uuid=session_uuid,
-        )
+        return dependency
 
     ## ----------------------------------------------- Session Methods ----------------------------------------------- ##
 
