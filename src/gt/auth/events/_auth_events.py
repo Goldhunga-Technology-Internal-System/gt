@@ -23,3 +23,28 @@ class UserCreatedEvent(DomainEvent):
     user_uuid: str
     email_token: str
     email_token_expiry_minutes: int
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class UserEmailVerifiedEvent(DomainEvent):
+    """
+    Event triggered when a user's email is verified.
+    """
+
+    user_id: int
+    email: str
+    user_uuid: str
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class UserEmailVerificationResentEvent(DomainEvent):
+    """
+    Event triggered when a user's email verification token is resent.
+    """
+
+    user_id: int
+    full_name: str
+    email: str
+    user_uuid: str
+    email_token: str
+    email_token_expiry_minutes: int

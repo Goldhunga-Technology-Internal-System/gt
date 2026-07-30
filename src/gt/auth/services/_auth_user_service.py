@@ -90,7 +90,7 @@ class AuthUserService[
                 browser=browser,
             )
 
-            _, plain_token = await self._get_email_verification_token(
+            _, plain_token = await self.get_email_verification_token(
                 user_id=new_user.id,
                 email_token_expiry_minutes=email_token_expiry_minutes,
                 email_token_digit=email_token_digit,
@@ -137,6 +137,21 @@ class AuthUserService[
                 internal_details=str(e),
             ) from e
 
+    async def update_user(self, user: TUser) -> TUser:
+        """
+        Update an existing user instance.
+        """
+        try:
+            updated_user = await self._repository.update(user)
+            return updated_user
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to update user.",
+                internal_details=str(e),
+            ) from e
+
     async def get_user_by(self, **kwargs) -> TUser | None:
         """
         Retrieve a user instance based on provided keyword arguments.
@@ -179,7 +194,7 @@ class AuthUserService[
                 internal_details=str(e),
             ) from e
 
-    async def _get_email_verification_token(
+    async def get_email_verification_token(
         self, user_id: int, email_token_expiry_minutes: int, email_token_digit: int
     ) -> tuple[TToken, str]:
         """

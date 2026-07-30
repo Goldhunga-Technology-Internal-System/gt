@@ -108,6 +108,25 @@ class AuthUserTokensService[TToken: AuthUserTokensModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def delete_tokens_by(self, **kwargs) -> None:
+        """Delete tokens matching the filter criteria.
+
+        Args:
+            **kwargs: Filter keyword arguments.
+
+        Raises:
+            DomainException: On unexpected failures.
+        """
+        try:
+            await self._repository.delete_by(**kwargs)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to delete tokens.",
+                internal_details=str(e),
+            ) from e
+
 
 def get_auth_user_tokens_service(
     session: AsyncSession, model: type[TToken]

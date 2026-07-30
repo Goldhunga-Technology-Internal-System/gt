@@ -79,3 +79,22 @@ class AuthUserTokensRepository[TToken: AuthUserTokensModelBase]:
                 error="Failed to retrieve token from the database.",
                 internal_details=str(e),
             ) from e
+
+    async def delete_by(self, **kwargs) -> None:
+        """Delete token records matching the filter criteria.
+
+        Args:
+            **kwargs: Filter keyword arguments passed to filter_by.
+        """
+        try:
+            stmt = select(self.model).filter_by(**kwargs)
+            result = await self.session.execute(stmt)
+            tokens_to_delete = result.scalars().all()
+            for token in tokens_to_delete:
+                await self.session.delete(token)
+            await self.session.flush()
+        except Exception as e:
+            raise CreateException(
+                error="Failed to delete token(s) from the database.",
+                internal_details=str(e),
+            ) from e
