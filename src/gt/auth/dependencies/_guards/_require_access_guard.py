@@ -15,6 +15,9 @@ def require_access(
     """
     Build a reusable access dependency for router/endpoint-level authorization.
     """
+
+    from gt.auth.dependencies._current_user import current_user
+
     needs_user = authenticated or email_verified or onboarded
 
     async def dependency(
@@ -24,7 +27,7 @@ def require_access(
 
         session_uuid = request.cookies.get("session_uuid")
         user = (
-            await auth.current_user(request=request, session=session)
+            await current_user(auth=auth, session=session, session_uuid=session_uuid)
             if session_uuid
             else None
         )
