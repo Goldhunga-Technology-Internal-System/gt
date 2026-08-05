@@ -124,6 +124,8 @@ class Auth[TUser: AuthUserModel]:
 
         return dependency
 
+    ## ----------------------------------------------- Policies ----------------------------------------------- ##
+
     ## ----------------------------------------------- Session Methods ----------------------------------------------- ##
 
     async def get_db_session(self) -> AsyncGenerator[AsyncSession]:
