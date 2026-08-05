@@ -23,3 +23,12 @@ dependencies = [
 
 [tool.ruff.lint]
 ignore = ["UP047","B008"]
+
+[dependency-groups]
+dev = [
+    "pyright>=1.1.411",
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"

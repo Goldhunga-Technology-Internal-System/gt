@@ -1,10 +1,12 @@
 from collections.abc import AsyncGenerator
+from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Request
 from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
+from gt.auth.dependencies._guards._require_access_guard import require_access
 from gt.auth.models._auth_user_account_model import create_auth_user_account_model
 from gt.auth.models._auth_user_model import create_auth_user_model
 from gt.auth.models._auth_user_onboarding_model import (
@@ -21,6 +23,14 @@ from gt.exceptions._base_exceptions import InvalidException
 from .events import event_bus
 from .models import AuthUserModel, AuthUserOnboardingModelBase
 from .routers import create_auth_router
+
+_POLICY_CHECKS_LITERAL = Literal["mfa_required", "email_verified", "onboarded"]
+
+_CHECK_TO_GUARD_ARG: dict[_POLICY_CHECKS_LITERAL, Any] = {
+    "mfa_required": {"mfa_required": True},
+    "email_verified": {"email_verified": True},
+    "onboarded": {"onboarded": True},
+}
 
 
 class Auth[TUser: AuthUserModel]:
@@ -73,6 +83,9 @@ class Auth[TUser: AuthUserModel]:
         self.user_register_schema = user_register_schema or AuthUserRegisterSchema
         self.event_bus = event_bus
 
+        ## policies
+        self._policies: dict[str, Any] = {}
+
     def init_app(self, app: FastAPI):
         """
         Initializes the FastAPI application with authentication routes and dependencies.
@@ -91,6 +104,28 @@ class Auth[TUser: AuthUserModel]:
         def decorator(handler):
             self.event_bus.register(event_type, handler)
             return handler
+
+        return decorator
+
+    def policy(self, name: str):
+        """
+        Decorator to enforce a policy on a route.
+        """
+
+        async def decorator(func):
+            checks = self._policies.get(name, None)
+            if checks is None:
+                raise ValueError(f"Policy '{name}' is not registered.")
+
+            kwargs = {}
+            for c in checks:
+                if c not in _CHECK_TO_GUARD_ARG:
+                    raise ValueError(f"Unknown policy check '{c}' in policy '{name}'.")
+                kwargs.update(_CHECK_TO_GUARD_ARG[c])
+
+            _ = Depends(require_access(auth=self, **kwargs))
+
+            return func
 
         return decorator
 
@@ -125,6 +160,14 @@ class Auth[TUser: AuthUserModel]:
         return dependency
 
     ## ----------------------------------------------- Policies ----------------------------------------------- ##
+
+    def register_policy(self, *, name: str, checks: _POLICY_CHECKS_LITERAL):
+        """
+        Registers a policy with the given name and checks.
+        """
+        if name in self._policies:
+            raise ValueError(f"Policy '{name}' is already registered.")
+        self._policies[name] = checks
 
     ## ----------------------------------------------- Session Methods ----------------------------------------------- ##
 
