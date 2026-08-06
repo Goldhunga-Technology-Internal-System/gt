@@ -71,13 +71,15 @@ def get_logger(name: str):
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
 
-        file_path = Path(os.getenv("LOG_FILE_PATH", "logs/app.log"))
-        file_path.parent.mkdir(parents=True, exist_ok=True)
+        log_file_path = os.getenv("LOG_FILE_PATH")
+        if log_file_path:
+            file_path = Path(log_file_path)
+            file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        file_handler = logging.FileHandler(file_path, encoding="utf-8")
-        file_handler.addFilter(request_id_filter)
-        file_handler.setFormatter(JsonFormatter())
-        logger.addHandler(file_handler)
+            file_handler = logging.FileHandler(file_path, encoding="utf-8")
+            file_handler.addFilter(request_id_filter)
+            file_handler.setFormatter(JsonFormatter())
+            logger.addHandler(file_handler)
 
     logger.propagate = False
     return logger
