@@ -56,7 +56,7 @@ def create_user_router(*, auth):
                     ip_address=ip_context.ip_address,
                     device=ip_context.device,
                     browser=ip_context.browser,
-                    session_expire_minutes=10,
+                    session_expire_minutes=settings.session_expiration_minutes,
                     email_token_expiry_minutes=settings.email_verification_token_expiry_minutes,
                     email_token_digit=settings.email_verification_token_digit,
                 )
