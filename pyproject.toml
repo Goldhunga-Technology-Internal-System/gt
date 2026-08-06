@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gt"
-version = "0.1.0"
+version = "1.0.0"
 description = "Batteries-included authentication framework for FastAPI."
 readme = "README.md"
 requires-python = ">=3.13"

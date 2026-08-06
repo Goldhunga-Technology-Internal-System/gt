@@ -39,7 +39,13 @@ It integrates directly with your existing **FastAPI**, **SQLAlchemy**, and **Ale
 
 # Installation
 
-Currently GT Auth is distributed directly from GitHub.
+Currently GT Auth is distributed directly from GitHub. Pin to a release tag for reproducible installs:
+
+```bash
+uv add git+https://github.com/Goldhunga-Technology-Internal-System/gt.git@v1.0.0
+```
+
+For the latest development version, install without the tag suffix:
 
 ```bash
 uv add git+https://github.com/Goldhunga-Technology-Internal-System/gt.git
@@ -57,7 +63,7 @@ from gt.auth import Auth
 
 from app.core.database import Base, async_session_factory
 
-app = FastAPI(title="My App", version="0.1.0")
+app = FastAPI(title="My App", version="1.0.0")
 
 auth = Auth(
     base=Base,
