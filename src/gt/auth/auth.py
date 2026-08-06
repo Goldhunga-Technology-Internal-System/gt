@@ -1,4 +1,6 @@
+import inspect
 from collections.abc import AsyncGenerator
+from functools import wraps
 from typing import Any, Literal
 
 from fastapi import Depends, FastAPI, Request
@@ -112,7 +114,7 @@ class Auth[TUser: AuthUserModel]:
         Decorator to enforce a policy on a route.
         """
 
-        async def decorator(func):
+        def decorator(func):
             checks = self._policies.get(name, None)
             if checks is None:
                 raise ValueError(f"Policy '{name}' is not registered.")
@@ -123,9 +125,24 @@ class Auth[TUser: AuthUserModel]:
                     raise ValueError(f"Unknown policy check '{c}' in policy '{name}'.")
                 kwargs.update(_CHECK_TO_GUARD_ARG[c])
 
-            _ = Depends(require_access(auth=self, **kwargs))
+            guard = Depends(require_access(auth=self, **kwargs))
 
-            return func
+            sig = inspect.signature(func)
+            guard_param = inspect.Parameter(
+                "_policy_guard",
+                kind=inspect.Parameter.KEYWORD_ONLY,
+                default=guard,
+            )
+            func.__signature__ = sig.replace(
+                parameters=[*sig.parameters.values(), guard_param]
+            )
+
+            @wraps(func)
+            async def wrapper(*args, **kwargs):
+                kwargs.pop("_policy_guard", None)
+                return await func(*args, **kwargs)
+
+            return wrapper
 
         return decorator
 
@@ -161,7 +178,7 @@ class Auth[TUser: AuthUserModel]:
 
     ## ----------------------------------------------- Policies ----------------------------------------------- ##
 
-    def register_policy(self, *, name: str, checks: _POLICY_CHECKS_LITERAL):
+    def register_policy(self, *, name: str, checks: list[_POLICY_CHECKS_LITERAL]):
         """
         Registers a policy with the given name and checks.
         """
