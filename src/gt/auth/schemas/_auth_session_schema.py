@@ -19,7 +19,7 @@ class CurrentSessionResponseSchema(BaseModel):
     browser: str | None = Field(
         default=None, description="Information about the browser used for the session."
     )
-    revoked_at: str | None = Field(
+    revoked_at: datetime | None = Field(
         default=None,
         description="Timestamp indicating when the session was revoked, if applicable.",
     )

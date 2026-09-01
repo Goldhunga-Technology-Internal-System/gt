@@ -1,3 +1,6 @@
+from typing import Literal
+
+from fastapi import Query
 from fastapi.requests import Request
 
 from gt.auth.schemas._auth_session_schema import CurrentSessionResponseSchema
@@ -54,6 +57,56 @@ def create_session_router(*, auth):
                 current,
             ).model_dump(),
             message="Successfully retrieved current session.",
+        )
+
+    @router.get("/all")
+    async def all_sessions(
+        request: Request,
+        status: Literal["active", "inactive", "all"] = Query(
+            "all",
+            description="Filter sessions by status: 'active', 'inactive', or 'all'",
+        ),
+    ):
+        """
+        Endpoint to retrieve all sessions for the current user.
+        """
+        session_uuid = request.cookies.get("session_uuid")
+        if not session_uuid:
+            return cr.error(
+                error="No session found.",
+                errors={"code": "SESSION_NOT_FOUND"},
+            )
+
+        async with session_factory() as session:
+            user_session_service: AuthUserSessionService = (
+                get_auth_user_session_service(
+                    session=session,
+                    model=user_session_model,
+                )
+            )
+
+            # Retrieve all sessions for the current user (implementation depends on your session management)
+            current = await user_session_service.get_session_by(uuid=session_uuid)
+
+            if not current or not current.is_active:
+                return cr.error(
+                    error="Invalid or expired session.",
+                    errors={"code": "SESSION_INVALID"},
+                )
+
+            all_sessions = await user_session_service.list_sessions_by_user(
+                user_id=current.user_id
+            )
+            if status != "all":
+                is_active = status == "active"
+                all_sessions = [s for s in all_sessions if s.is_active == is_active]
+
+        return cr.success(
+            data=[
+                CurrentSessionResponseSchema.model_validate(s).model_dump()
+                for s in all_sessions
+            ],
+            message="Successfully retrieved all sessions.",
         )
 
     return router
