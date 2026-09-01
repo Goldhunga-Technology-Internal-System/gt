@@ -84,6 +84,20 @@ class AuthUserSessionService[TSession: AuthUserSessionModelBase]:
                 internal_details=str(e),
             ) from e
 
+    async def list_sessions_by_user(self, user_id: int) -> list[TSession]:
+        """List all sessions for a given user.
+
+        Args:
+            user_id: The ID of the user.
+        """
+        try:
+            return await self._repository.filter_by(user_id=user_id)
+        except Exception as e:
+            raise DomainException(
+                error="Failed to list sessions for user.",
+                internal_details=str(e),
+            ) from e
+
     async def invalidate_session(self, session_uuid: str) -> None:
         """Invalidate a session by its UUID.
 

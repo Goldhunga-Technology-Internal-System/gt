@@ -176,6 +176,34 @@ class Auth[TUser: AuthUserModel]:
 
         return dependency
 
+    def current_session(
+        self,
+    ):
+        """
+        Dependency function to retrieve the current authenticated session.
+        """
+
+        async def dependency(
+            request: Request,
+            session: AsyncSession = Depends(self.get_db_session),
+        ):
+
+            from gt.auth.dependencies._current_session import current_session
+
+            session_uuid = request.cookies.get("session_uuid")
+            if not session_uuid:
+                raise InvalidException(
+                    error="Session UUID cookie is missing. Please log in again.",
+                )
+
+            return await current_session(
+                auth=self,
+                session=session,
+                session_uuid=session_uuid,
+            )
+
+        return dependency
+
     ## ----------------------------------------------- Policies ----------------------------------------------- ##
 
     def register_policy(self, *, name: str, checks: list[_POLICY_CHECKS_LITERAL]):

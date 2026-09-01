@@ -79,3 +79,22 @@ class AuthUserSessionRepository[TSession: AuthUserSessionModelBase]:
                 error="Failed to update session in the database.",
                 internal_details=str(e),
             ) from e
+
+    async def filter_by(self, **kwargs) -> list[TSession]:
+        """Filter session records by arbitrary criteria.
+
+        Args:
+            **kwargs: Filter keyword arguments passed to filter_by.
+
+        Returns:
+            A list of matching session instances.
+        """
+        try:
+            stmt = select(self.model).filter_by(**kwargs)
+            result = await self.session.execute(stmt)
+            return list(result.scalars().all())
+        except Exception as e:
+            raise CreateException(
+                error="Failed to filter sessions from the database.",
+                internal_details=str(e),
+            ) from e
