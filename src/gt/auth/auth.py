@@ -94,6 +94,7 @@ class Auth[TUser: AuthUserModel]:
         """
         self._register_routers(app)
         self._register_exceptions(app)
+        self._register_middlewares(app)
 
     ## ----------------------------------------------- Decorators ----------------------------------------------- ##
     def on(self, event_type: type):
@@ -239,3 +240,16 @@ class Auth[TUser: AuthUserModel]:
         from gt.exceptions import add_exceptions_handler
 
         add_exceptions_handler(app)
+
+    def _register_middlewares(self, app: FastAPI):
+        """
+        Registers custom middlewares to the FastAPI application.
+        """
+        from starlette.middleware.sessions import SessionMiddleware
+
+        app.add_middleware(
+            SessionMiddleware,
+            secret_key="secret key",
+            same_site="none",
+            # https_only=config.APP_URL.startswith("https"),
+        )

@@ -20,3 +20,8 @@ class AuthSettings:
     ## email verification settings
     email_verification_token_expiry_minutes: int = 15  # 15 minutes
     email_verification_token_digit: int = 6
+
+    ## oauth settings
+    google_oauth_client_id: str | None = None
+    google_oauth_client_secret: str | None = None
+    oauth_app_url: str | None = None
