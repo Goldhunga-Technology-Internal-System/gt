@@ -40,3 +40,21 @@ def create_oauth_router(*, auth):
                 return await oauth_service.authorize_redirect(request=request)
 
     return router
+
+    @router.get("/callback/{provider}")
+    async def oauth_callback(
+        request: Request,
+        provider: Literal["google"] = Path(..., description="OAuth provider name"),
+    ):
+        """
+        Endpoint to handle the OAuth callback for a given provider.
+        """
+
+        async with session_factory() as session:
+            oauth_service = get_auth_oauth_service(
+                settings=settings,
+                provider=provider,
+            )
+
+            async with AuthUOW(session):
+                return await oauth_service.handle_callback(request=request)
