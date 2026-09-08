@@ -1,0 +1,152 @@
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from gt.exceptions import ConflictException, DomainException
+from gt.organizations.models import generate_slug
+from gt.organizations.schemas import OrganizationCreateSchema
+from gt.organizations.services import (
+    get_organization_member_service,
+    get_organization_service,
+)
+
+
+def make_organization(models, *, owner_id: int = 1, name: str = "My Org"):
+    return models["organization_model"](
+        name=name.lower(),
+        slug=generate_slug(name),
+        owner_id=owner_id,
+    )
+
+
+def make_member(models, *, organization_id: int = 1, user_id: int = 2):
+    return models["organization_member_model"](
+        organization_id=organization_id, user_id=user_id
+    )
+
+
+class TestGenerateSlug:
+    def test_converts_whitespace_to_hyphens(self):
+        assert generate_slug("My Test Org") == "my-test-org"
+
+    def test_lowercases_and_strips_special_chars(self):
+        assert generate_slug("  Goldhunga's Tech!!  ") == "goldhungas-tech"
+
+    def test_collapses_multiple_hyphens(self):
+        assert generate_slug("A   B") == "a-b"
+
+
+class TestOrganizationModel:
+    def test_name_and_slug(self, models):
+        org = make_organization(models)
+        assert org.name == "my org"
+        assert org.slug == "my-org"
+
+    def test_is_active(self, models):
+        assert make_organization(models, name="Active Org").is_active() is True
+
+    def test_default_status_active(self, models):
+        org = make_organization(models)
+        assert org.status == "active"
+
+
+class TestOrganizationMemberModel:
+    def test_fields(self, models):
+        member = make_member(models)
+        assert member.organization_id == 1
+        assert member.user_id == 2
+        assert member.status == "active"
+        assert member.is_active() is True
+
+
+class TestOrganizationCreateSchema:
+    def test_name_stored_lowercase(self):
+        schema = OrganizationCreateSchema(name="  My Cool Org  ")
+        assert schema.name == "my cool org"
+
+
+class TestOrganizationService:
+    async def test_create_organization(self, models):
+        model = models["organization_model"]
+        service = get_organization_service(session=MagicMock(), model=model)
+
+        repository = service._repository
+        repository.add = AsyncMock(
+            return_value=make_organization(models, name="New Org")
+        )
+        repository.get_by = AsyncMock(return_value=None)
+
+        result = await service.create_organization(name="New Org", owner_id=1)
+
+        assert result.name == "new org"
+        assert result.slug == "new-org"
+
+    async def test_create_organization_duplicate_name(self, models):
+        model = models["organization_model"]
+        service = get_organization_service(session=MagicMock(), model=model)
+
+        repository = service._repository
+        repository.get_by = AsyncMock(return_value=make_organization(models))
+
+        with pytest.raises(ConflictException):
+            await service.create_organization(name="My Org", owner_id=1)
+
+    async def test_get_organization_by(self, models):
+        model = models["organization_model"]
+        service = get_organization_service(session=MagicMock(), model=model)
+
+        service._repository.get_by = AsyncMock(return_value=make_organization(models))
+
+        result = await service.get_organization_by(slug="my-org")
+        assert result is not None
+        assert result.slug == "my-org"
+
+
+class TestOrganizationMemberService:
+    async def test_add_member(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        service._repository.get_by = AsyncMock(return_value=None)
+        service._repository.add = AsyncMock(return_value=make_member(models))
+
+        result = await service.add_member(organization_id=1, user_id=2)
+        assert result.organization_id == 1
+        assert result.user_id == 2
+
+    async def test_add_member_duplicate(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        service._repository.get_by = AsyncMock(return_value=make_member(models))
+
+        with pytest.raises(ConflictException):
+            await service.add_member(organization_id=1, user_id=2)
+
+    async def test_list_members(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        service._repository.filter_by = AsyncMock(
+            return_value=[make_member(models), make_member(models, user_id=3)]
+        )
+
+        result = await service.list_members(organization_id=1)
+        assert len(result) == 2
+
+    async def test_update_member(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        member = make_member(models)
+        service._repository.update = AsyncMock(return_value=member)
+
+        result = await service.update_member(member=member, status="inactive")
+        assert result.status == "inactive"
+
+    async def test_remove_member_missing_raises(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        with pytest.raises(DomainException):
+            await service.remove_member(None)

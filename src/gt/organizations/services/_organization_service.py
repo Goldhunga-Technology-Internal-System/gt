@@ -1,0 +1,185 @@
+from typing import Any, cast
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from gt.exceptions import ConflictException, DomainException
+from gt.organizations.models import OrganizationModel, TOrganization, generate_slug
+from gt.organizations.repositories import OrganizationRepository
+
+
+class OrganizationService[TOrganization: OrganizationModel]:
+    """Service for managing organization operations."""
+
+    def __init__(
+        self,
+        repository: OrganizationRepository[TOrganization],
+        model: type[TOrganization],
+    ):
+        """Initialize the service with a repository and model.
+
+        Args:
+            repository: The OrganizationRepository instance.
+            model: The OrganizationModel class.
+        """
+        self._repository = repository
+        self._model = model
+
+    async def create_organization(
+        self,
+        name: str,
+        owner_id: int,
+        description: str | None = None,
+        logo: str | None = None,
+        status: str = "active",
+    ) -> TOrganization:
+        """Create a new organization.
+
+        Args:
+            name: The organization name (stored in lowercase).
+            owner_id: The ID of the user who owns the organization.
+            description: An optional organization description.
+            logo: An optional organization logo.
+            status: The organization status.
+
+        Returns:
+            The created organization instance.
+
+        Raises:
+            ConflictException: If an organization with the same name already exists.
+            DomainException: On unexpected failures.
+        """
+        try:
+            normalized_name = name.strip().lower()
+            slug = generate_slug(normalized_name)
+
+            existing = await self._repository.get_by(name=normalized_name)
+            if existing:
+                raise ConflictException(
+                    error=f"Organization with name '{normalized_name}' already exists.",
+                )
+
+            model_cls = cast("type[Any]", self._model)
+            organization = model_cls(
+                name=normalized_name,
+                slug=slug,
+                owner_id=owner_id,
+                status=status,
+                description=description,
+                logo=logo,
+            )
+            return await self._repository.add(organization)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to create organization.",
+                internal_details=str(e),
+            ) from e
+
+    async def get_organization_by(self, **kwargs) -> TOrganization | None:
+        """Retrieve an organization by filter criteria.
+
+        Args:
+            **kwargs: Filter keyword arguments.
+
+        Returns:
+            The matching organization instance or None.
+
+        Raises:
+            DomainException: On unexpected failures.
+        """
+        try:
+            return await self._repository.get_by(**kwargs)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to retrieve organization.",
+                internal_details=str(e),
+            ) from e
+
+    async def update_organization(
+        self,
+        organization: TOrganization,
+        name: str | None = None,
+        description: str | None = None,
+        logo: str | None = None,
+        status: str | None = None,
+    ) -> TOrganization:
+        """Update an existing organization.
+
+        Args:
+            organization: The organization model instance to update.
+            name: An optional new organization name (stored in lowercase).
+            description: An optional new organization description.
+            logo: An optional new organization logo.
+            status: An optional new organization status.
+
+        Returns:
+            The updated organization instance.
+
+        Raises:
+            ConflictException: If a new name collides with an existing organization.
+            DomainException: On unexpected failures.
+        """
+        try:
+            if name is not None:
+                normalized_name = name.strip().lower()
+                existing = await self._repository.get_by(name=normalized_name)
+                if existing and existing.id != organization.id:
+                    raise ConflictException(
+                        error=f"Organization with name '{normalized_name}' already exists.",
+                    )
+                organization.name = normalized_name
+                organization.slug = generate_slug(normalized_name)
+            if description is not None:
+                organization.description = description
+            if logo is not None:
+                organization.logo = logo
+            if status is not None:
+                organization.status = status
+
+            return await self._repository.update(organization)
+        except DomainException:
+            raise
+        except Exception as e:
+            raise DomainException(
+                error="Failed to update organization.",
+                internal_details=str(e),
+            ) from e
+
+    async def list_organizations_by_owner(self, owner_id: int) -> list[TOrganization]:
+        """List all organizations owned by the given user.
+
+        Args:
+            owner_id: The ID of the owner.
+
+        Returns:
+            A list of matching organization instances.
+
+        Raises:
+            DomainException: On unexpected failures.
+        """
+        try:
+            return await self._repository.filter_by(owner_id=owner_id)
+        except Exception as e:
+            raise DomainException(
+                error="Failed to list organizations for owner.",
+                internal_details=str(e),
+            ) from e
+
+
+def get_organization_service(
+    session: AsyncSession, model: type[TOrganization]
+) -> OrganizationService[TOrganization]:
+    """Factory function to create an OrganizationService instance.
+
+    Args:
+        session: Async SQLAlchemy session.
+        model: The OrganizationModel class.
+
+    Returns:
+        A configured OrganizationService.
+    """
+    repository = OrganizationRepository(session=session, model=model)
+    return OrganizationService(repository=repository, model=model)
