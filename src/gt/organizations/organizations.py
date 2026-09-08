@@ -4,6 +4,7 @@ from pydantic.main import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
+from gt.auth.events import event_bus
 from gt.auth.models._auth_user_model import TUser
 from gt.organizations.models import (
     OrganizationMemberModelBase,
@@ -69,11 +70,27 @@ class Organizations:
         ## dependencies
         self.current_user = current_user
 
+        ## event bus
+        self.event_bus = event_bus
+
     def init_app(self, app):
         """
         Initializes the FastAPI application with organization routes.
         """
         self._register_routers(app)
+
+    def on(self, event_type: type):
+        """
+        Registers an event handler for a specific event type.
+
+        :param event_type: The type of the event to listen for.
+        """
+
+        def decorator(handler):
+            self.event_bus.register(event_type, handler)
+            return handler
+
+        return decorator
 
     async def get_db_session(self) -> AsyncGenerator[AsyncSession]:
         """

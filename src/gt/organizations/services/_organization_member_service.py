@@ -2,7 +2,13 @@ from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.events import event_bus
 from gt.exceptions import ConflictException, DomainException, NotFoundException
+from gt.organizations.events import (
+    OrganizationMemberAddedEvent,
+    OrganizationMemberRemovedEvent,
+    OrganizationMemberUpdatedEvent,
+)
 from gt.organizations.models import (
     OrganizationMemberModelBase,
     TOrganizationMember,
@@ -30,6 +36,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
     async def add_member(
         self,
         organization_id: int,
+        organization_uuid: str,
         user_id: int,
         status: str = "active",
     ) -> TOrganizationMember:
@@ -37,6 +44,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
 
         Args:
             organization_id: The ID of the organization.
+            organization_uuid: The UUID of the organization.
             user_id: The ID of the user to add.
             status: The member status.
 
@@ -62,7 +70,20 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
                 user_id=user_id,
                 status=status,
             )
-            return await self._repository.add(member)
+            created = await self._repository.add(member)
+
+            await event_bus.publish(
+                OrganizationMemberAddedEvent(
+                    member_id=created.id,
+                    member_uuid=created.uuid,
+                    organization_id=organization_id,
+                    organization_uuid=organization_uuid,
+                    user_id=user_id,
+                    status=status,
+                )
+            )
+
+            return created
         except DomainException:
             raise
         except Exception as e:
@@ -116,12 +137,14 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
     async def update_member(
         self,
         member: TOrganizationMember,
+        organization_uuid: str,
         status: str,
     ) -> TOrganizationMember:
         """Update an existing organization member.
 
         Args:
             member: The member model instance to update.
+            organization_uuid: The UUID of the organization.
             status: The new member status.
 
         Returns:
@@ -132,7 +155,20 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
         """
         try:
             member.status = status
-            return await self._repository.update(member)
+            updated = await self._repository.update(member)
+
+            await event_bus.publish(
+                OrganizationMemberUpdatedEvent(
+                    member_id=updated.id,
+                    member_uuid=updated.uuid,
+                    organization_id=updated.organization_id,
+                    organization_uuid=organization_uuid,
+                    user_id=updated.user_id,
+                    status=status,
+                )
+            )
+
+            return updated
         except DomainException:
             raise
         except Exception as e:
@@ -141,11 +177,14 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
                 internal_details=str(e),
             ) from e
 
-    async def remove_member(self, member: TOrganizationMember) -> None:
+    async def remove_member(
+        self, member: TOrganizationMember, organization_uuid: str
+    ) -> None:
         """Remove a member from an organization.
 
         Args:
             member: The member model instance to remove.
+            organization_uuid: The UUID of the organization.
 
         Raises:
             NotFoundException: If the member does not exist.
@@ -154,6 +193,17 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
         try:
             if not member:
                 raise NotFoundException(error="Organization member not found.")
+
+            await event_bus.publish(
+                OrganizationMemberRemovedEvent(
+                    member_id=member.id,
+                    member_uuid=member.uuid,
+                    organization_id=member.organization_id,
+                    organization_uuid=organization_uuid,
+                    user_id=member.user_id,
+                )
+            )
+
             await self._repository.delete(member)
         except DomainException:
             raise

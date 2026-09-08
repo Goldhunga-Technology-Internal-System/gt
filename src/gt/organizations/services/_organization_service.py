@@ -2,7 +2,12 @@ from typing import Any, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from gt.auth.events import event_bus
 from gt.exceptions import ConflictException, DomainException
+from gt.organizations.events import (
+    OrganizationCreatedEvent,
+    OrganizationUpdatedEvent,
+)
 from gt.organizations.models import OrganizationModel, TOrganization, generate_slug
 from gt.organizations.repositories import OrganizationRepository
 
@@ -67,7 +72,19 @@ class OrganizationService[TOrganization: OrganizationModel]:
                 description=description,
                 logo=logo,
             )
-            return await self._repository.add(organization)
+            created = await self._repository.add(organization)
+
+            await event_bus.publish(
+                OrganizationCreatedEvent(
+                    organization_id=created.id,
+                    organization_uuid=created.uuid,
+                    name=created.name,
+                    slug=created.slug,
+                    owner_id=created.owner_id,
+                )
+            )
+
+            return created
         except DomainException:
             raise
         except Exception as e:
@@ -139,7 +156,19 @@ class OrganizationService[TOrganization: OrganizationModel]:
             if status is not None:
                 organization.status = status
 
-            return await self._repository.update(organization)
+            updated = await self._repository.update(organization)
+
+            await event_bus.publish(
+                OrganizationUpdatedEvent(
+                    organization_id=updated.id,
+                    organization_uuid=updated.uuid,
+                    name=updated.name,
+                    slug=updated.slug,
+                    owner_id=updated.owner_id,
+                )
+            )
+
+            return updated
         except DomainException:
             raise
         except Exception as e:

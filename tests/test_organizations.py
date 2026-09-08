@@ -110,7 +110,9 @@ class TestOrganizationMemberService:
         service._repository.get_by = AsyncMock(return_value=None)
         service._repository.add = AsyncMock(return_value=make_member(models))
 
-        result = await service.add_member(organization_id=1, user_id=2)
+        result = await service.add_member(
+            organization_id=1, organization_uuid="test-uuid", user_id=2
+        )
         assert result.organization_id == 1
         assert result.user_id == 2
 
@@ -121,7 +123,9 @@ class TestOrganizationMemberService:
         service._repository.get_by = AsyncMock(return_value=make_member(models))
 
         with pytest.raises(ConflictException):
-            await service.add_member(organization_id=1, user_id=2)
+            await service.add_member(
+                organization_id=1, organization_uuid="test-uuid", user_id=2
+            )
 
     async def test_list_members(self, models):
         model = models["organization_member_model"]
@@ -141,7 +145,9 @@ class TestOrganizationMemberService:
         member = make_member(models)
         service._repository.update = AsyncMock(return_value=member)
 
-        result = await service.update_member(member=member, status="inactive")
+        result = await service.update_member(
+            member=member, organization_uuid="test-uuid", status="inactive"
+        )
         assert result.status == "inactive"
 
     async def test_remove_member_missing_raises(self, models):
@@ -149,4 +155,4 @@ class TestOrganizationMemberService:
         service = get_organization_member_service(session=MagicMock(), model=model)
 
         with pytest.raises(DomainException):
-            await service.remove_member(None)
+            await service.remove_member(None, organization_uuid="test-uuid")

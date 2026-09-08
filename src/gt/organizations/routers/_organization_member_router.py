@@ -66,6 +66,7 @@ def create_organization_member_router(*, organizations):
                 try:
                     member = await member_service.add_member(
                         organization_id=organization.id,
+                        organization_uuid=organization.uuid,
                         user_id=body.user_id,
                         status=body.status,
                     )
@@ -156,7 +157,9 @@ def create_organization_member_router(*, organizations):
                     )
                 try:
                     member = await member_service.update_member(
-                        member=member, status=body.status
+                        member=member,
+                        organization_uuid=organization.uuid,
+                        status=body.status,
                     )
                 except DomainException as e:
                     return cr.error(
@@ -210,7 +213,9 @@ def create_organization_member_router(*, organizations):
                         errors={"code": "MEMBER_NOT_FOUND"},
                         status_code=HTTP_400_BAD_REQUEST,
                     )
-                await member_service.remove_member(member)
+                await member_service.remove_member(
+                    member, organization_uuid=organization.uuid
+                )
 
         return cr.success(message="Member removed successfully.")
 
