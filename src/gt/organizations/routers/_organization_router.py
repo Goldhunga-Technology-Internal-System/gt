@@ -8,7 +8,12 @@ from gt.organizations.schemas import (
     OrganizationResponseSchema,
     OrganizationUpdateSchema,
 )
-from gt.organizations.services import OrganizationService, get_organization_service
+from gt.organizations.services import (
+    OrganizationMemberService,
+    OrganizationService,
+    get_organization_member_service,
+    get_organization_service,
+)
 from gt.response import cr
 
 
@@ -40,12 +45,23 @@ def create_organization_router(*, organizations):
             organization_service: OrganizationService = get_organization_service(
                 session=session, model=organization_model
             )
+            organization_member_model = organizations.organization_member_model
+            member_service: OrganizationMemberService = get_organization_member_service(
+                session=session, model=organization_member_model
+            )
             async with AuthUOW(session):
                 organization = await organization_service.create_organization(
                     name=body.name,
                     owner_id=user.id,
                     description=body.description,
                     logo=body.logo,
+                )
+                await member_service.add_member(
+                    organization_id=organization.id,
+                    organization_uuid=organization.uuid,
+                    user_id=user.id,
+                    status="active",
+                    role="owner",
                 )
 
         return cr.success(

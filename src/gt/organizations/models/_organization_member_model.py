@@ -37,6 +37,9 @@ class OrganizationMemberModelBase(MappedAsDataclass):
     status: Mapped[str] = mapped_column(
         String(255), nullable=False, default="active", index=True, kw_only=True
     )
+    role: Mapped[str] = mapped_column(
+        String(255), nullable=False, default="member", index=True, kw_only=True
+    )
 
     def is_active(self) -> bool:
         """Check if the membership is active.
@@ -62,7 +65,7 @@ def create_organization_member_model(
     relationships and avoid circular dependencies.
 
     If the model does not define ``__tablename__``, it defaults to
-    ``"auth_organization_members"``.
+    ``"sys_organization_members"``.
 
     Args:
         base: The declarative base class (SQLAlchemy or SQLModel).
@@ -77,7 +80,7 @@ def create_organization_member_model(
     attrs: dict[str, object] = {}
 
     if "__tablename__" not in model.__dict__:
-        attrs["__tablename__"] = "auth_organization_members"
+        attrs["__tablename__"] = "sys_organization_members"
 
     attrs["user_id"] = mapped_column(
         ForeignKey(f"{user_model.__tablename__}.id", ondelete="CASCADE"),

@@ -69,6 +69,7 @@ def create_organization_member_router(*, organizations):
                         organization_uuid=organization.uuid,
                         user_id=body.user_id,
                         status=body.status,
+                        role=body.role,
                     )
                 except DomainException as e:
                     return cr.error(
@@ -113,10 +114,10 @@ def create_organization_member_router(*, organizations):
             message="Members retrieved successfully.",
         )
 
-    @router.patch("/{organization_slug}/members/{user_id}")
+    @router.patch("/{organization_slug}/members/{member_uuid}")
     async def update_member(
         organization_slug: str,
-        user_id: int,
+        member_uuid: str,
         body: OrganizationMemberUpdateSchema,
         user=Depends(current_user),
     ):
@@ -147,7 +148,7 @@ def create_organization_member_router(*, organizations):
             )
             async with AuthUOW(session):
                 member = await member_service.get_member_by(
-                    organization_id=organization.id, user_id=user_id
+                    organization_id=organization.id, uuid=member_uuid
                 )
                 if not member:
                     return cr.error(
@@ -160,6 +161,7 @@ def create_organization_member_router(*, organizations):
                         member=member,
                         organization_uuid=organization.uuid,
                         status=body.status,
+                        role=body.role,
                     )
                 except DomainException as e:
                     return cr.error(
@@ -172,10 +174,10 @@ def create_organization_member_router(*, organizations):
             message="Member updated successfully.",
         )
 
-    @router.delete("/{organization_slug}/members/{user_id}")
+    @router.delete("/{organization_slug}/members/{member_uuid}")
     async def remove_member(
         organization_slug: str,
-        user_id: int,
+        member_uuid: str,
         user=Depends(current_user),
     ):
         """
@@ -205,7 +207,7 @@ def create_organization_member_router(*, organizations):
             )
             async with AuthUOW(session):
                 member = await member_service.get_member_by(
-                    organization_id=organization.id, user_id=user_id
+                    organization_id=organization.id, uuid=member_uuid
                 )
                 if not member:
                     return cr.error(

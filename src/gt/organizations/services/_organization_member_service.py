@@ -39,6 +39,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
         organization_uuid: str,
         user_id: int,
         status: str = "active",
+        role: str = "member",
     ) -> TOrganizationMember:
         """Add a new member to an organization.
 
@@ -47,6 +48,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
             organization_uuid: The UUID of the organization.
             user_id: The ID of the user to add.
             status: The member status.
+            role: The member role.
 
         Returns:
             The created member instance.
@@ -69,6 +71,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
                 organization_id=organization_id,
                 user_id=user_id,
                 status=status,
+                role=role,
             )
             created = await self._repository.add(member)
 
@@ -80,6 +83,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
                     organization_uuid=organization_uuid,
                     user_id=user_id,
                     status=status,
+                    role=role,
                 )
             )
 
@@ -138,7 +142,8 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
         self,
         member: TOrganizationMember,
         organization_uuid: str,
-        status: str,
+        status: str | None = None,
+        role: str | None = None,
     ) -> TOrganizationMember:
         """Update an existing organization member.
 
@@ -146,6 +151,7 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
             member: The member model instance to update.
             organization_uuid: The UUID of the organization.
             status: The new member status.
+            role: The new member role.
 
         Returns:
             The updated member instance.
@@ -154,7 +160,10 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
             DomainException: On unexpected failures.
         """
         try:
-            member.status = status
+            if status is not None:
+                member.status = status
+            if role is not None:
+                member.role = role
             updated = await self._repository.update(member)
 
             await event_bus.publish(
@@ -164,7 +173,8 @@ class OrganizationMemberService[TOrganizationMember: OrganizationMemberModelBase
                     organization_id=updated.organization_id,
                     organization_uuid=organization_uuid,
                     user_id=updated.user_id,
-                    status=status,
+                    status=updated.status,
+                    role=updated.role,
                 )
             )
 

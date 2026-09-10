@@ -19,9 +19,11 @@ def make_organization(models, *, owner_id: int = 1, name: str = "My Org"):
     )
 
 
-def make_member(models, *, organization_id: int = 1, user_id: int = 2):
+def make_member(
+    models, *, organization_id: int = 1, user_id: int = 2, role: str = "member"
+):
     return models["organization_member_model"](
-        organization_id=organization_id, user_id=user_id
+        organization_id=organization_id, user_id=user_id, role=role
     )
 
 
@@ -56,7 +58,12 @@ class TestOrganizationMemberModel:
         assert member.organization_id == 1
         assert member.user_id == 2
         assert member.status == "active"
+        assert member.role == "member"
         assert member.is_active() is True
+
+    def test_owner_role(self, models):
+        member = make_member(models, role="owner")
+        assert member.role == "owner"
 
 
 class TestOrganizationCreateSchema:
@@ -115,6 +122,21 @@ class TestOrganizationMemberService:
         )
         assert result.organization_id == 1
         assert result.user_id == 2
+        assert result.role == "member"
+
+    async def test_add_member_with_role(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        service._repository.get_by = AsyncMock(return_value=None)
+        service._repository.add = AsyncMock(
+            return_value=make_member(models, role="admin")
+        )
+
+        result = await service.add_member(
+            organization_id=1, organization_uuid="test-uuid", user_id=2, role="admin"
+        )
+        assert result.role == "admin"
 
     async def test_add_member_duplicate(self, models):
         model = models["organization_member_model"]
@@ -149,6 +171,18 @@ class TestOrganizationMemberService:
             member=member, organization_uuid="test-uuid", status="inactive"
         )
         assert result.status == "inactive"
+
+    async def test_update_member_role(self, models):
+        model = models["organization_member_model"]
+        service = get_organization_member_service(session=MagicMock(), model=model)
+
+        member = make_member(models)
+        service._repository.update = AsyncMock(return_value=member)
+
+        result = await service.update_member(
+            member=member, organization_uuid="test-uuid", role="admin"
+        )
+        assert result.role == "admin"
 
     async def test_remove_member_missing_raises(self, models):
         model = models["organization_member_model"]

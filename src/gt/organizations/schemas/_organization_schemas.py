@@ -50,12 +50,14 @@ class OrganizationMemberAddSchema(BaseModel):
 
     user_id: int
     status: str = Field(default="active", max_length=255)
+    role: str = Field(default="member", max_length=255)
 
 
 class OrganizationMemberUpdateSchema(BaseModel):
     """Schema for updating an organization member."""
 
-    status: str = Field(..., max_length=255)
+    status: str | None = Field(default=None, max_length=255)
+    role: str | None = Field(default=None, max_length=255)
 
 
 class OrganizationMemberResponseSchema(BaseModel):
@@ -67,3 +69,4 @@ class OrganizationMemberResponseSchema(BaseModel):
     user_id: int
     organization_id: int
     status: str
+    role: str

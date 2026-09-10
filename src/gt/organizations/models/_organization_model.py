@@ -91,7 +91,7 @@ def create_organization_model(
     Injects the application-specific User model to establish the owner foreign key.
 
     If the model does not define ``__tablename__``, it defaults to
-    ``"auth_organizations"``.
+    ``"sys_organizations"``.
 
     Args:
         base: The declarative base class (SQLAlchemy or SQLModel).
@@ -105,7 +105,7 @@ def create_organization_model(
     attrs: dict[str, object] = {}
 
     if "__tablename__" not in model.__dict__:
-        attrs["__tablename__"] = "auth_organizations"
+        attrs["__tablename__"] = "sys_organizations"
 
     attrs["owner_id"] = mapped_column(
         ForeignKey(f"{user_model.__tablename__}.id", ondelete="CASCADE"),

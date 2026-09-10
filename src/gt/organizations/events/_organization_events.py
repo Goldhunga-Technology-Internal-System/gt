@@ -46,6 +46,7 @@ class OrganizationMemberAddedEvent(DomainEvent):
     organization_uuid: str
     user_id: int
     status: str
+    role: str
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -58,6 +59,7 @@ class OrganizationMemberUpdatedEvent(DomainEvent):
     organization_uuid: str
     user_id: int
     status: str
+    role: str
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
